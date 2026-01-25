@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using E_commarce_Backend.Data;
 using E_commarce_Backend.Models;
+using E_commarce_Backend.Services.Abstractions;
+using E_commarce_Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 namespace E_commarce_Backend.Extentions
@@ -25,6 +25,15 @@ namespace E_commarce_Backend.Extentions
 
             return services;
         }
+       
+        public static IServiceCollection AddEcommarceDbContexts(this IServiceCollection services, IConfiguration config)
+            {
+                // E-Commerce DbContext
+                services.AddDbContext<ECommerceDbContext>(options =>
+                    options.UseSqlServer(config.GetConnectionString("ECommerceConnection")));
+
+                return services;
+            }
 
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
@@ -55,6 +64,16 @@ namespace E_commarce_Backend.Extentions
 
             return services;
         }
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        {
+            services.AddScoped<IEmailService, SmtpEmailService>();
+            services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ICartService, CartService>();
+            return services;
+        }
+
 
     }
 }
