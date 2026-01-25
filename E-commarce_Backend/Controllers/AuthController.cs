@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using E_commarce_Backend.Services;
 using Microsoft.EntityFrameworkCore;
+using E_commarce_Backend.Services.Abstractions;
 
 namespace E_commarce_Backend.Controllers
 {
@@ -17,34 +18,68 @@ namespace E_commarce_Backend.Controllers
     [Route("api/[controller]")]
     public class AuthController(UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
-        IConfiguration configuration) : ControllerBase
+        IConfiguration configuration ,
+        IJwtService jwtService) : ControllerBase
     {
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto model)
         {
-            var user = new AppUser { UserName = model.Email, Email = model.Email, FullName = model.FullName };
+            // 1. Check if email exists
+            var existingUser = await userManager.FindByEmailAsync(model.Email);
+            if (existingUser != null)
+                return BadRequest(new { Message = "Email is already registered." });
+
+            // 2. Prepare user model
+            var user = new AppUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FullName = model.FullName
+            };
+
+            // 3. Create user
             var result = await userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
+            // 4. 🔥 ADD THE ROLE HERE
+            await userManager.AddToRoleAsync(user, "Customer");
+
+            // 5. Response
             return Ok(new { Message = "User registered successfully!" });
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
             var user = await userManager.FindByEmailAsync(model.Email);
+
             if (user == null)
-                return Unauthorized();
+                return Unauthorized(new { Message = "Invalid login credentials" });
 
             var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-            if (!result.Succeeded)
-                return Unauthorized();
 
-            return Ok(new { Token = GenerateJwtToken(user) });
+            if (!result.Succeeded)
+                return Unauthorized(new { Message = "Invalid login credentials" });
+
+            var roles = await userManager.GetRolesAsync(user);
+
+            return Ok(new
+            {
+                Token = await jwtService.GenerateToken(user),
+                User = new
+                {
+                    user.Id,
+                    user.FullName,
+                    user.Email,
+                    Roles = roles
+                }
+            });
         }
+
 
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(
@@ -107,45 +142,32 @@ namespace E_commarce_Backend.Controllers
         }
 
 
-        private string GenerateJwtToken(AppUser user)
+        private async Task<string> GenerateJwtToken(AppUser user)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes( configuration["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var roles = await userManager.GetRolesAsync(user);
 
-            var claims = new[]
+            var authClaims = new List<Claim>
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                    new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
+
+            // 🔥 Add roles to token
+            authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
 
             var token = new JwtSecurityToken(
                 issuer: configuration["Jwt:Issuer"],
                 audience: configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds
-                );
+                expires: DateTime.UtcNow.AddHours(3),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        private async Task SendResetEmailAsync(string email, string token)
-        {
-            var resetLink = $"https://yourfrontend.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}";
 
-            using (var client = new SmtpClient("smtp.gmail.com", 587))
-            {
-                client.EnableSsl = true;
-                client.Credentials = new NetworkCredential("youremail@gmail.com", "your-app-password");
-
-                var mail = new MailMessage("youremail@gmail.com", email)
-                {
-                    Subject = "Password Reset",
-                    Body = $"Click the link to reset your password: {resetLink}"
-                };
-
-                await client.SendMailAsync(mail);
-            }
-        }
 
     }
 
