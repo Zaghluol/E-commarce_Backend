@@ -2,9 +2,10 @@
 using E_commarce_Backend.Data;
 using E_commarce_Backend.Dtos;
 using E_commarce_Backend.Models;
+using E_commarce_Backend.Services.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
-namespace E_commarce_Backend.Services.Abstractions
+namespace E_commarce_Backend.Services
 {
     public class CartService(ECommerceDbContext context, IMapper mapper) : ICartService
     {

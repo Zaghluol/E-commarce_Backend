@@ -22,34 +22,104 @@ namespace E_commarce_Backend.Controllers
         IJwtService jwtService) : ControllerBase
     {
 
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromBody] RegisterDto model)
+        //{
+        //    // 1. Check if email exists
+        //    var existingUser = await userManager.FindByEmailAsync(model.Email);
+        //    if (existingUser != null)
+        //        return BadRequest(new { Message = "Email is already registered." });
+
+        //    // 2. Prepare user model
+        //    var user = new AppUser
+        //    {
+        //        UserName = model.Email,
+        //        Email = model.Email,
+        //        FullName = model.FullName
+        //    };
+
+        //    // 3. Create user
+        //    var result = await userManager.CreateAsync(user, model.Password);
+
+        //    if (!result.Succeeded)
+        //        return BadRequest(result.Errors);
+
+        //    // 4. 🔥 ADD THE ROLE HERE
+        //    await userManager.AddToRoleAsync(user, "Customer");
+
+        //    // 5. Response
+        //    return Ok(new { Message = "User registered successfully!" });
+        //}
+
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto model)
+        public async Task<IActionResult> Register(
+            [FromBody] RegisterDto model,
+            [FromServices] IEmailService emailService)
         {
-            // 1. Check if email exists
             var existingUser = await userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
                 return BadRequest(new { Message = "Email is already registered." });
 
-            // 2. Prepare user model
             var user = new AppUser
             {
                 UserName = model.Email,
                 Email = model.Email,
-                FullName = model.FullName
+                FullName = model.FullName,
+                EmailConfirmed = false
             };
 
-            // 3. Create user
             var result = await userManager.CreateAsync(user, model.Password);
-
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
-            // 4. 🔥 ADD THE ROLE HERE
             await userManager.AddToRoleAsync(user, "Customer");
 
-            // 5. Response
-            return Ok(new { Message = "User registered successfully!" });
+            // 🔐 Generate 6-digit code
+            var code = new Random().Next(100000, 999999).ToString();
+
+            user.EmailVerificationCode = code;
+            user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+            await userManager.UpdateAsync(user);
+
+            // 📧 Send email (SMTP)
+            await emailService.SendEmailAsync(
+                user.Email,
+                "Verify your email",
+                $"Your verification code is: <b>{code}</b>"
+            );
+
+            return Ok(new
+            {
+                Message = "Registration successful. Please verify your email."
+            });
         }
+
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto model)
+        {
+            var user = await userManager.Users
+                .FirstOrDefaultAsync(u =>
+                    u.EmailVerificationCode == model.Code);
+
+            if (user == null)
+                return BadRequest("Invalid verification code");
+
+            if (user.EmailConfirmed)
+                return BadRequest("Email already verified");
+
+            if (user.EmailCodeExpiry < DateTime.UtcNow)
+                return BadRequest("Verification code expired");
+
+            user.EmailConfirmed = true;
+            user.EmailVerificationCode = null;
+            user.EmailCodeExpiry = null;
+
+            await userManager.UpdateAsync(user);
+
+            return Ok(new { Message = "Email verified successfully" });
+        }
+
 
 
         [HttpPost("login")]
@@ -64,6 +134,9 @@ namespace E_commarce_Backend.Controllers
 
             if (!result.Succeeded)
                 return Unauthorized(new { Message = "Invalid login credentials" });
+
+            if (!user.EmailConfirmed)
+                return Unauthorized("Please verify your email first");
 
             var roles = await userManager.GetRolesAsync(user);
 

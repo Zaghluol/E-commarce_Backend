@@ -17,11 +17,17 @@ namespace E_commarce_Backend.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetCart()
-            => Ok(await cartService.GetCartAsync(UserId));
+        {
+           var Carts = await cartService.GetCartAsync(UserId);
+            return Ok(Carts);
+        }
 
         [HttpPost]
         public async Task<IActionResult> AddToCart(AddToCartDto dto)
-            => Ok(await cartService.AddToCartAsync(UserId, dto.ProductId, dto.Quantity));
+        {
+          var Adding = await cartService.AddToCartAsync(UserId, dto.ProductId, dto.Quantity);
+            return Ok(Adding);
+        }
 
         [HttpPut("{itemId}")]
         public async Task<IActionResult> UpdateItem(int itemId, UpdateCartItemDto dto)
