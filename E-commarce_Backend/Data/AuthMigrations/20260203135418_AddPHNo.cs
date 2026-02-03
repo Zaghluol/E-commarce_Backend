@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace E_commarce_Backend.Data.Migrations
+namespace E_commarce_Backend.Data.AuthMigrations
 {
     /// <inheritdoc />
-    public partial class InitCartCategory : Migration
+    public partial class AddPHNo : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

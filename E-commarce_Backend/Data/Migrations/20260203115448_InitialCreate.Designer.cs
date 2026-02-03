@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commarce_Backend.Migrations.ECommerceDb
+namespace E_commarce_Backend.Migrations
 {
     [DbContext(typeof(ECommerceDbContext))]
-    [Migration("20251217211322_MakeUserIdNullableInCart")]
-    partial class MakeUserIdNullableInCart
+    [Migration("20260203115448_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,8 +39,14 @@ namespace E_commarce_Backend.Migrations.ECommerceDb
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("EmailCodeExpiry")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("EmailVerificationCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)");

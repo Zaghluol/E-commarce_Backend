@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commarce_Backend.Migrations.ECommerce
+namespace E_commarce_Backend.Migrations
 {
     [DbContext(typeof(ECommerceDbContext))]
     partial class ECommerceDbContextModelSnapshot : ModelSnapshot
@@ -36,8 +36,14 @@ namespace E_commarce_Backend.Migrations.ECommerce
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("EmailCodeExpiry")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("EmailVerificationCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)");

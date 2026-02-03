@@ -11,6 +11,7 @@ using System.Text;
 using E_commarce_Backend.Services;
 using Microsoft.EntityFrameworkCore;
 using E_commarce_Backend.Services.Abstractions;
+using System.Security.Cryptography;
 
 namespace E_commarce_Backend.Controllers
 {
@@ -53,18 +54,25 @@ namespace E_commarce_Backend.Controllers
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(
-            [FromBody] RegisterDto model,
-            [FromServices] IEmailService emailService)
+    [FromBody] RegisterDto model,
+    [FromServices] IEmailService emailService)
         {
+            // 1️⃣ Validate DTO
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // 2️⃣ Check email
             var existingUser = await userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
                 return BadRequest(new { Message = "Email is already registered." });
 
+            // 3️⃣ Create user
             var user = new AppUser
             {
                 UserName = model.Email,
                 Email = model.Email,
                 FullName = model.FullName,
+                PhoneNumber = model.PhoneNumber,
                 EmailConfirmed = false
             };
 
@@ -72,21 +80,29 @@ namespace E_commarce_Backend.Controllers
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
+            // 4️⃣ Assign role
             await userManager.AddToRoleAsync(user, "Customer");
 
-            // 🔐 Generate 6-digit code
-            var code = new Random().Next(100000, 999999).ToString();
+            // 5️⃣ Generate secure 6-digit verification code
+            var code = RandomNumberGenerator
+                .GetInt32(100000, 999999)
+                .ToString();
 
             user.EmailVerificationCode = code;
             user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
 
             await userManager.UpdateAsync(user);
 
-            // 📧 Send email (SMTP)
+            // 6️⃣ Send verification email
             await emailService.SendEmailAsync(
                 user.Email,
                 "Verify your email",
-                $"Your verification code is: <b>{code}</b>"
+               $@"
+                <h3>Email Verification</h3>
+                <p>Your verification code is:</p>
+                <h2>{code}</h2>
+                <p>This code expires in 10 minutes.</p>
+                "
             );
 
             return Ok(new
