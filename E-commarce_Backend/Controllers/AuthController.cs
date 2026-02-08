@@ -90,6 +90,8 @@ namespace E_commarce_Backend.Controllers
 
             user.EmailVerificationCode = code;
             user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.LastVerificationCodeSentAt = DateTime.UtcNow;
+
 
             await userManager.UpdateAsync(user);
 
@@ -136,6 +138,60 @@ namespace E_commarce_Backend.Controllers
             return Ok(new { Message = "Email verified successfully" });
         }
 
+        [HttpPost("resend-verification-code")]
+        public async Task<IActionResult> ResendVerificationCode(
+        [FromBody] ResendVerificationCodeDto model,
+        [FromServices] IEmailService emailService)
+        {
+            var user = await userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return BadRequest("User not found");
+
+            if (user.EmailConfirmed)
+                return BadRequest("Email already verified");
+
+            // ⏱ Cooldown check (60 seconds)
+            if (user.LastVerificationCodeSentAt.HasValue &&
+                DateTime.UtcNow < user.LastVerificationCodeSentAt.Value.AddSeconds(60))
+            {
+                var waitTime =
+                    (int)(user.LastVerificationCodeSentAt.Value
+                    .AddSeconds(60) - DateTime.UtcNow).TotalSeconds;
+
+                return BadRequest(new
+                {
+                    Message = $"Please wait {waitTime} seconds before requesting another code."
+                });
+            }
+
+            // 🔐 Generate new secure code
+            var code = RandomNumberGenerator
+                .GetInt32(100000, 999999)
+                .ToString();
+
+            user.EmailVerificationCode = code;
+            user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.LastVerificationCodeSentAt = DateTime.UtcNow;
+
+            await userManager.UpdateAsync(user);
+
+            // 📧 Send email
+            await emailService.SendEmailAsync(
+                user.Email,
+                "Resend Email Verification Code",
+                $@"
+        <h3>Email Verification</h3>
+        <p>Your new verification code is:</p>
+        <h2>{code}</h2>
+        <p>This code expires in 10 minutes.</p>
+        "
+            );
+
+            return Ok(new
+            {
+                Message = "Verification code resent successfully"
+            });
+        }
 
 
         [HttpPost("login")]
@@ -184,6 +240,8 @@ namespace E_commarce_Backend.Controllers
 
             user.PasswordResetCode = code;
             user.PasswordResetCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.LastResetCodeSentAt = DateTime.UtcNow;
+
             await userManager.UpdateAsync(user);
 
             var htmlContent = $@"
@@ -230,6 +288,57 @@ namespace E_commarce_Backend.Controllers
             return Ok(new { Message = "Password reset successfully." });
         }
 
+        [HttpPost("resend-Reset-code")]
+        public async Task<IActionResult> ResendResetCode(
+        [FromBody] ResendResetCodeDto model,
+        [FromServices] IEmailService emailService)
+        {
+            var user = await userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return BadRequest("User not found");
+
+            // ⏱ Cooldown check (60 seconds)
+            if (user.LastResetCodeSentAt.HasValue &&
+                DateTime.UtcNow < user.LastResetCodeSentAt.Value.AddSeconds(60))
+            {
+                var waitTime =
+                    (int)(user.LastResetCodeSentAt.Value
+                    .AddSeconds(60) - DateTime.UtcNow).TotalSeconds;
+
+                return BadRequest(new
+                {
+                    Message = $"Please wait {waitTime} seconds before requesting another code."
+                });
+            }
+
+            // 🔐 Generate new secure code
+            var code = RandomNumberGenerator
+                .GetInt32(100000, 999999)
+                .ToString();
+
+            user.PasswordResetCode = code;
+            user.PasswordResetCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.LastResetCodeSentAt = DateTime.UtcNow;
+
+            await userManager.UpdateAsync(user);
+
+            // 📧 Send email
+            await emailService.SendEmailAsync(
+                user.Email,
+                "Resend Email Reset Code",
+                $@"
+        <h3>Reset Password</h3>
+        <p>Your new Reset code is:</p>
+        <h2>{code}</h2>
+        <p>This code expires in 10 minutes.</p>
+        "
+            );
+
+            return Ok(new
+            {
+                Message = "Reset Password code resent successfully"
+            });
+        }
 
     }
 

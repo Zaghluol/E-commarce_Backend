@@ -3,24 +3,18 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace E_commarce_Backend.Data
+namespace E_commarce_Backend.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddEmailVerification : Migration
+    public partial class AddResendResetCode : Migration
     {
-        /// <inheritdoc />
+        /// <inheritdoc /> 
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<DateTime>(
-                name: "EmailCodeExpiry",
+                name: "LastResetCodeSentAt",
                 table: "AspNetUsers",
                 type: "datetime2",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "EmailVerificationCode",
-                table: "AspNetUsers",
-                type: "nvarchar(max)",
                 nullable: true);
         }
 
@@ -28,11 +22,7 @@ namespace E_commarce_Backend.Data
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "EmailCodeExpiry",
-                table: "AspNetUsers");
-
-            migrationBuilder.DropColumn(
-                name: "EmailVerificationCode",
+                name: "LastResetCodeSentAt",
                 table: "AspNetUsers");
         }
     }

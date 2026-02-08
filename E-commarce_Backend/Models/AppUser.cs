@@ -9,5 +9,8 @@ namespace E_commarce_Backend.Models
         public DateTime? EmailCodeExpiry { get; set; }
         public string? PasswordResetCode { get; set; }
         public DateTime? PasswordResetCodeExpiry { get; set; }
+        public DateTime? LastVerificationCodeSentAt { get; set; }
+        public DateTime? LastResetCodeSentAt { get; set; }
+
     }
 }

@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commarce_Backend.Data.AuthMigrations
+namespace E_commarce_Backend.Data.AuthMigration
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260203135418_AddPHNo")]
-    partial class AddPHNo
+    [Migration("20260206144948_Authentication")]
+    partial class Authentication
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

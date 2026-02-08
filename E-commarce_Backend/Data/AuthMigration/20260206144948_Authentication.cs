@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace E_commarce_Backend.Data.Migrations
+namespace E_commarce_Backend.Data.AuthMigration
 {
     /// <inheritdoc />
     public partial class Authentication : Migration
@@ -31,6 +31,10 @@ namespace E_commarce_Backend.Data.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EmailVerificationCode = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    EmailCodeExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PasswordResetCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PasswordResetCodeExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -188,6 +192,11 @@ namespace E_commarce_Backend.Data.Migrations
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_EmailVerificationCode",
+                table: "AspNetUsers",
+                column: "EmailVerificationCode");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
