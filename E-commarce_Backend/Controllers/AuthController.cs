@@ -137,8 +137,7 @@ namespace E_commarce_Backend.Controllers
                 Email = model.Email,
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
-                PasswordHash = userManager.PasswordHasher
-                    .HashPassword(null!, model.Password),
+                PasswordHash = model.Password,
                 VerificationCode = code,
                 CodeExpiry = DateTime.UtcNow.AddMinutes(10)
             };
@@ -181,12 +180,9 @@ namespace E_commarce_Backend.Controllers
                 EmailConfirmed = true
             };
 
-            var result = await userManager.CreateAsync(user);
+            var result = await userManager.CreateAsync(user, pendingUser.PasswordHash);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
-
-            // Set password
-            await userManager.AddPasswordAsync(user, pendingUser.PasswordHash);
 
             await userManager.AddToRoleAsync(user, "Customer");
 
@@ -260,12 +256,12 @@ namespace E_commarce_Backend.Controllers
             var user = await userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
-                return Unauthorized(new { Message = "Invalid login credentials" });
+                return Unauthorized(new { Message = "Invalid login credentials 1" });
 
             var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             if (!result.Succeeded)
-                return Unauthorized(new { Message = "Invalid login credentials" });
+                return Unauthorized(new { Message = "Invalid login credentials 2" });
 
             if (!user.EmailConfirmed)
                 return Unauthorized("Please verify your email first");
