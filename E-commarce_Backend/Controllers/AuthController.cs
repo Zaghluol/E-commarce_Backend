@@ -12,6 +12,7 @@ using E_commarce_Backend.Services;
 using Microsoft.EntityFrameworkCore;
 using E_commarce_Backend.Services.Abstractions;
 using System.Security.Cryptography;
+using E_commarce_Backend.Data;
 
 namespace E_commarce_Backend.Controllers
 {
@@ -19,124 +20,183 @@ namespace E_commarce_Backend.Controllers
     [Route("api/[controller]")]
     public class AuthController(UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
+        AppDbContext context,
         IConfiguration configuration ,
         IJwtService jwtService) : ControllerBase
     {
 
-        //[HttpPost("register")]
-        //public async Task<IActionResult> Register([FromBody] RegisterDto model)
-        //{
-        //    // 1. Check if email exists
-        //    var existingUser = await userManager.FindByEmailAsync(model.Email);
-        //    if (existingUser != null)
-        //        return BadRequest(new { Message = "Email is already registered." });
-
-        //    // 2. Prepare user model
-        //    var user = new AppUser
+        //    [HttpPost("register")]
+        //    public async Task<IActionResult> Register(
+        //[FromBody] RegisterDto model,
+        //[FromServices] IEmailService emailService)
         //    {
-        //        UserName = model.Email,
-        //        Email = model.Email,
-        //        FullName = model.FullName
-        //    };
+        //        // 1️⃣ Validate DTO
+        //        if (!ModelState.IsValid)
+        //            return BadRequest(ModelState);
 
-        //    // 3. Create user
-        //    var result = await userManager.CreateAsync(user, model.Password);
+        //        // 2️⃣ Check email
+        //        var existingUser = await userManager.FindByEmailAsync(model.Email);
+        //        if (existingUser != null)
+        //            return BadRequest(new { Message = "Email is already registered." });
 
-        //    if (!result.Succeeded)
-        //        return BadRequest(result.Errors);
+        //        // 3️⃣ Create user
+        //        var user = new AppUser
+        //        {
+        //            UserName = model.Email,
+        //            Email = model.Email,
+        //            FullName = model.FullName,
+        //            PhoneNumber = model.PhoneNumber,
+        //            EmailConfirmed = false
+        //        };
 
-        //    // 4. 🔥 ADD THE ROLE HERE
-        //    await userManager.AddToRoleAsync(user, "Customer");
+        //        var result = await userManager.CreateAsync(user, model.Password);
+        //        if (!result.Succeeded)
+        //            return BadRequest(result.Errors);
 
-        //    // 5. Response
-        //    return Ok(new { Message = "User registered successfully!" });
-        //}
+        //        // 4️⃣ Assign role
+        //        await userManager.AddToRoleAsync(user, "Customer");
+
+        //        // 5️⃣ Generate secure 6-digit verification code
+        //        var code = RandomNumberGenerator
+        //            .GetInt32(100000, 999999)
+        //            .ToString();
+
+        //        user.EmailVerificationCode = code;
+        //        user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+        //        user.LastVerificationCodeSentAt = DateTime.UtcNow;
+
+
+        //        await userManager.UpdateAsync(user);
+
+        //        // 6️⃣ Send verification email
+        //        await emailService.SendEmailAsync(
+        //            user.Email,
+        //            "Verify your email",
+        //           $@"
+        //            <h3>Email Verification</h3>
+        //            <p>Your verification code is:</p>
+        //            <h2>{code}</h2>
+        //            <p>This code expires in 10 minutes.</p>
+        //            "
+        //        );
+
+        //        return Ok(new
+        //        {
+        //            Message = "Registration successful. Please verify your email."
+        //        });
+        //    }
+
+        //    [HttpPost("verify-email")]
+        //    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto model)
+        //    {
+        //        var user = await userManager.Users
+        //            .FirstOrDefaultAsync(u =>
+        //                u.EmailVerificationCode == model.Code);
+
+        //        if (user == null)
+        //            return BadRequest("Invalid verification code");
+
+        //        if (user.EmailConfirmed)
+        //            return BadRequest("Email already verified");
+
+        //        if (user.EmailCodeExpiry < DateTime.UtcNow)
+        //            return BadRequest("Verification code expired");
+
+        //        user.EmailConfirmed = true;
+        //        user.EmailVerificationCode = null;
+        //        user.EmailCodeExpiry = null;
+
+        //        await userManager.UpdateAsync(user);
+
+        //        return Ok(new { Message = "Email verified successfully" });
+        //    }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(
     [FromBody] RegisterDto model,
     [FromServices] IEmailService emailService)
         {
-            // 1️⃣ Validate DTO
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // 2️⃣ Check email
+            // Check if already registered
             var existingUser = await userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
-                return BadRequest(new { Message = "Email is already registered." });
+                return BadRequest("Email is already registered.");
 
-            // 3️⃣ Create user
-            var user = new AppUser
+            // Remove old pending registration
+            var pending = await context.PendingUsers
+                .FirstOrDefaultAsync(x => x.Email == model.Email);
+            if (pending != null)
+                context.PendingUsers.Remove(pending);
+
+            var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+
+            var pendingUser = new PendingUser
             {
-                UserName = model.Email,
                 Email = model.Email,
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
-                EmailConfirmed = false
+                PasswordHash = userManager.PasswordHasher
+                    .HashPassword(null!, model.Password),
+                VerificationCode = code,
+                CodeExpiry = DateTime.UtcNow.AddMinutes(10)
             };
 
-            var result = await userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            context.PendingUsers.Add(pendingUser);
+            await context.SaveChangesAsync();
 
-            // 4️⃣ Assign role
-            await userManager.AddToRoleAsync(user, "Customer");
-
-            // 5️⃣ Generate secure 6-digit verification code
-            var code = RandomNumberGenerator
-                .GetInt32(100000, 999999)
-                .ToString();
-
-            user.EmailVerificationCode = code;
-            user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
-            user.LastVerificationCodeSentAt = DateTime.UtcNow;
-
-
-            await userManager.UpdateAsync(user);
-
-            // 6️⃣ Send verification email
             await emailService.SendEmailAsync(
-                user.Email,
+                model.Email,
                 "Verify your email",
-               $@"
-                <h3>Email Verification</h3>
-                <p>Your verification code is:</p>
-                <h2>{code}</h2>
-                <p>This code expires in 10 minutes.</p>
-                "
+                $@"
+        <h3>Email Verification</h3>
+        <p>Your verification code is:</p>
+        <h2>{code}</h2>
+        <p>This code expires in 10 minutes.</p>
+        "
             );
 
-            return Ok(new
-            {
-                Message = "Registration successful. Please verify your email."
-            });
+            return Ok("Verification code sent to your email.");
         }
 
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto model)
         {
-            var user = await userManager.Users
-                .FirstOrDefaultAsync(u =>
-                    u.EmailVerificationCode == model.Code);
+            var pendingUser = await context.PendingUsers
+                .FirstOrDefaultAsync(x => x.VerificationCode == model.Code);
 
-            if (user == null)
+            if (pendingUser == null)
                 return BadRequest("Invalid verification code");
 
-            if (user.EmailConfirmed)
-                return BadRequest("Email already verified");
-
-            if (user.EmailCodeExpiry < DateTime.UtcNow)
+            if (pendingUser.CodeExpiry < DateTime.UtcNow)
                 return BadRequest("Verification code expired");
 
-            user.EmailConfirmed = true;
-            user.EmailVerificationCode = null;
-            user.EmailCodeExpiry = null;
+            var user = new AppUser
+            {
+                UserName = pendingUser.Email,
+                Email = pendingUser.Email,
+                FullName = pendingUser.FullName,
+                PhoneNumber = pendingUser.PhoneNumber,
+                EmailConfirmed = true
+            };
 
-            await userManager.UpdateAsync(user);
+            var result = await userManager.CreateAsync(user);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
 
-            return Ok(new { Message = "Email verified successfully" });
+            // Set password
+            await userManager.AddPasswordAsync(user, pendingUser.PasswordHash);
+
+            await userManager.AddToRoleAsync(user, "Customer");
+
+            // Remove pending record
+            context.PendingUsers.Remove(pendingUser);
+            await context.SaveChangesAsync();
+
+            return Ok("Email verified and account created successfully.");
         }
+
 
         [HttpPost("resend-verification-code")]
         public async Task<IActionResult> ResendVerificationCode(

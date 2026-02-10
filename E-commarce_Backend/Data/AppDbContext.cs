@@ -13,5 +13,6 @@ namespace E_commarce_Backend.Data
             builder.Entity<AppUser>()
             .HasIndex(u => u.EmailVerificationCode);
         }
+        public DbSet<PendingUser> PendingUsers { get; set; }
     }
 }
