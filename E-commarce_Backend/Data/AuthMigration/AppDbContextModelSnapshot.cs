@@ -129,7 +129,10 @@ namespace E_commarce_Backend.Data.AuthMigration
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<DateTime?>("LastVerificationCodeSentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

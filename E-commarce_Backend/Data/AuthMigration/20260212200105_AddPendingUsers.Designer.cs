@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commarce_Backend.Data.AuthMigration
+namespace E_commarce_Backend.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260210171324_AddPendingUsers")]
+    [Migration("20260212200105_AddPendingUsers")]
     partial class AddPendingUsers
     {
         /// <inheritdoc />
@@ -132,7 +132,10 @@ namespace E_commarce_Backend.Data.AuthMigration
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<DateTime?>("LastVerificationCodeSentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

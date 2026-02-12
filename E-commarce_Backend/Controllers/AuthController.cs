@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using E_commarce_Backend.Services.Abstractions;
 using System.Security.Cryptography;
 using E_commarce_Backend.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace E_commarce_Backend.Controllers
 {
@@ -24,93 +25,6 @@ namespace E_commarce_Backend.Controllers
         IConfiguration configuration ,
         IJwtService jwtService) : ControllerBase
     {
-
-        //    [HttpPost("register")]
-        //    public async Task<IActionResult> Register(
-        //[FromBody] RegisterDto model,
-        //[FromServices] IEmailService emailService)
-        //    {
-        //        // 1️⃣ Validate DTO
-        //        if (!ModelState.IsValid)
-        //            return BadRequest(ModelState);
-
-        //        // 2️⃣ Check email
-        //        var existingUser = await userManager.FindByEmailAsync(model.Email);
-        //        if (existingUser != null)
-        //            return BadRequest(new { Message = "Email is already registered." });
-
-        //        // 3️⃣ Create user
-        //        var user = new AppUser
-        //        {
-        //            UserName = model.Email,
-        //            Email = model.Email,
-        //            FullName = model.FullName,
-        //            PhoneNumber = model.PhoneNumber,
-        //            EmailConfirmed = false
-        //        };
-
-        //        var result = await userManager.CreateAsync(user, model.Password);
-        //        if (!result.Succeeded)
-        //            return BadRequest(result.Errors);
-
-        //        // 4️⃣ Assign role
-        //        await userManager.AddToRoleAsync(user, "Customer");
-
-        //        // 5️⃣ Generate secure 6-digit verification code
-        //        var code = RandomNumberGenerator
-        //            .GetInt32(100000, 999999)
-        //            .ToString();
-
-        //        user.EmailVerificationCode = code;
-        //        user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
-        //        user.LastVerificationCodeSentAt = DateTime.UtcNow;
-
-
-        //        await userManager.UpdateAsync(user);
-
-        //        // 6️⃣ Send verification email
-        //        await emailService.SendEmailAsync(
-        //            user.Email,
-        //            "Verify your email",
-        //           $@"
-        //            <h3>Email Verification</h3>
-        //            <p>Your verification code is:</p>
-        //            <h2>{code}</h2>
-        //            <p>This code expires in 10 minutes.</p>
-        //            "
-        //        );
-
-        //        return Ok(new
-        //        {
-        //            Message = "Registration successful. Please verify your email."
-        //        });
-        //    }
-
-        //    [HttpPost("verify-email")]
-        //    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto model)
-        //    {
-        //        var user = await userManager.Users
-        //            .FirstOrDefaultAsync(u =>
-        //                u.EmailVerificationCode == model.Code);
-
-        //        if (user == null)
-        //            return BadRequest("Invalid verification code");
-
-        //        if (user.EmailConfirmed)
-        //            return BadRequest("Email already verified");
-
-        //        if (user.EmailCodeExpiry < DateTime.UtcNow)
-        //            return BadRequest("Verification code expired");
-
-        //        user.EmailConfirmed = true;
-        //        user.EmailVerificationCode = null;
-        //        user.EmailCodeExpiry = null;
-
-        //        await userManager.UpdateAsync(user);
-
-        //        return Ok(new { Message = "Email verified successfully" });
-        //    }
-
         [HttpPost("register")]
         public async Task<IActionResult> Register(
     [FromBody] RegisterDto model,
@@ -137,7 +51,7 @@ namespace E_commarce_Backend.Controllers
                 Email = model.Email,
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
-                PasswordHash = model.Password,
+                Password = model.Password,
                 VerificationCode = code,
                 CodeExpiry = DateTime.UtcNow.AddMinutes(10)
             };
@@ -180,7 +94,7 @@ namespace E_commarce_Backend.Controllers
                 EmailConfirmed = true
             };
 
-            var result = await userManager.CreateAsync(user, pendingUser.PasswordHash);
+            var result = await userManager.CreateAsync(user, pendingUser.Password);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
@@ -196,23 +110,23 @@ namespace E_commarce_Backend.Controllers
 
         [HttpPost("resend-verification-code")]
         public async Task<IActionResult> ResendVerificationCode(
-        [FromBody] ResendVerificationCodeDto model,
-        [FromServices] IEmailService emailService)
+            [FromBody] ResendVerificationCodeDto model,
+            [FromServices] IEmailService emailService)
         {
-            var user = await userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-                return BadRequest("User not found");
+            var pendingUser = await context.PendingUsers
+                .FirstOrDefaultAsync(x => x.Email == model.Email);
 
-            if (user.EmailConfirmed)
-                return BadRequest("Email already verified");
+            if (pendingUser == null)
+                return BadRequest("No pending registration found for this email.");
 
             // ⏱ Cooldown check (60 seconds)
-            if (user.LastVerificationCodeSentAt.HasValue &&
-                DateTime.UtcNow < user.LastVerificationCodeSentAt.Value.AddSeconds(60))
+            if (pendingUser.LastVerificationCodeSentAt.HasValue &&
+                DateTime.UtcNow < pendingUser.LastVerificationCodeSentAt.Value.AddSeconds(60))
             {
-                var waitTime =
-                    (int)(user.LastVerificationCodeSentAt.Value
-                    .AddSeconds(60) - DateTime.UtcNow).TotalSeconds;
+                var waitTime = (int)(
+                    pendingUser.LastVerificationCodeSentAt.Value
+                    .AddSeconds(60) - DateTime.UtcNow
+                ).TotalSeconds;
 
                 return BadRequest(new
                 {
@@ -225,15 +139,15 @@ namespace E_commarce_Backend.Controllers
                 .GetInt32(100000, 999999)
                 .ToString();
 
-            user.EmailVerificationCode = code;
-            user.EmailCodeExpiry = DateTime.UtcNow.AddMinutes(10);
-            user.LastVerificationCodeSentAt = DateTime.UtcNow;
+            pendingUser.VerificationCode = code;
+            pendingUser.CodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            pendingUser.LastVerificationCodeSentAt = DateTime.UtcNow;
 
-            await userManager.UpdateAsync(user);
+            await context.SaveChangesAsync();
 
             // 📧 Send email
             await emailService.SendEmailAsync(
-                user.Email,
+                pendingUser.Email,
                 "Resend Email Verification Code",
                 $@"
         <h3>Email Verification</h3>
@@ -248,6 +162,7 @@ namespace E_commarce_Backend.Controllers
                 Message = "Verification code resent successfully"
             });
         }
+
 
 
         [HttpPost("login")]
@@ -396,7 +311,18 @@ namespace E_commarce_Backend.Controllers
             });
         }
 
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            return Ok(new
+            {
+                Message = "Logged out successfully"
+            });
+        }
+
     }
+
 
 
 }

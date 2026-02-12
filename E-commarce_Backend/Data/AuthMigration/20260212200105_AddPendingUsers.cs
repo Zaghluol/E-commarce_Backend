@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace E_commarce_Backend.Data.AuthMigration
+namespace E_commarce_Backend.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AddPendingUsers : Migration
@@ -20,9 +20,10 @@ namespace E_commarce_Backend.Data.AuthMigration
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     VerificationCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CodeExpiry = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CodeExpiry = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastVerificationCodeSentAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
