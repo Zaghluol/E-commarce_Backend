@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace E_commarce_Backend.Data.AuthMigration
+namespace E_commarce_Backend.Data.AuthMigrations
 {
     /// <inheritdoc />
-    public partial class Authentication : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,6 +35,8 @@ namespace E_commarce_Backend.Data.AuthMigration
                     EmailCodeExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
                     PasswordResetCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PasswordResetCodeExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastVerificationCodeSentAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastResetCodeSentAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -53,6 +55,25 @@ namespace E_commarce_Backend.Data.AuthMigration
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PendingUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VerificationCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CodeExpiry = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastVerificationCodeSentAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PendingUsers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -223,6 +244,9 @@ namespace E_commarce_Backend.Data.AuthMigration
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "PendingUsers");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

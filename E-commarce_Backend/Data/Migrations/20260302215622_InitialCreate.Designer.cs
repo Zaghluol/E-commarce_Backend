@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commarce_Backend.Migrations
+namespace E_commarce_Backend.Data.Migrations
 {
     [DbContext(typeof(ECommerceDbContext))]
-    [Migration("20260203115448_InitialCreate")]
+    [Migration("20260302215622_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -50,6 +50,12 @@ namespace E_commarce_Backend.Migrations
 
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastResetCodeSentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastVerificationCodeSentAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
