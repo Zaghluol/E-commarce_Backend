@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commarce_Backend.Data.AuthMigration
+namespace E_commarce_Backend.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260208210746_AddResendResetCode")]

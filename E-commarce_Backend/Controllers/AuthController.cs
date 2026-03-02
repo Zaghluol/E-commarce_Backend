@@ -311,16 +311,6 @@ namespace E_commarce_Backend.Controllers
             });
         }
 
-        [Authorize]
-        [HttpPost("logout")]
-        public IActionResult Logout()
-        {
-            return Ok(new
-            {
-                Message = "Logged out successfully"
-            });
-        }
-
     }
 
 
