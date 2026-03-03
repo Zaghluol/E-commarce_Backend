@@ -12,4 +12,5 @@ namespace E_commarce_Backend.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
     }
+
 }

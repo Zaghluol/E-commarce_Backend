@@ -11,6 +11,9 @@ using System.Text;
 using E_commarce_Backend.Services;
 using Microsoft.EntityFrameworkCore;
 using E_commarce_Backend.Services.Abstractions;
+using System.Security.Cryptography;
+using E_commarce_Backend.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace E_commarce_Backend.Controllers
 {
@@ -18,38 +21,148 @@ namespace E_commarce_Backend.Controllers
     [Route("api/[controller]")]
     public class AuthController(UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
+        AppDbContext context,
         IConfiguration configuration ,
         IJwtService jwtService) : ControllerBase
     {
-
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto model)
+        public async Task<IActionResult> Register(
+    [FromBody] RegisterDto model,
+    [FromServices] IEmailService emailService)
         {
-            // 1. Check if email exists
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Check if already registered
             var existingUser = await userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
-                return BadRequest(new { Message = "Email is already registered." });
+                return BadRequest("Email is already registered.");
 
-            // 2. Prepare user model
-            var user = new AppUser
+            // Remove old pending registration
+            var pending = await context.PendingUsers
+                .FirstOrDefaultAsync(x => x.Email == model.Email);
+            if (pending != null)
+                context.PendingUsers.Remove(pending);
+
+            var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+
+            var pendingUser = new PendingUser
             {
-                UserName = model.Email,
                 Email = model.Email,
-                FullName = model.FullName
+                FullName = model.FullName,
+                PhoneNumber = model.PhoneNumber,
+                Password = model.Password,
+                VerificationCode = code,
+                CodeExpiry = DateTime.UtcNow.AddMinutes(10)
             };
 
-            // 3. Create user
-            var result = await userManager.CreateAsync(user, model.Password);
+            context.PendingUsers.Add(pendingUser);
+            await context.SaveChangesAsync();
 
+            await emailService.SendEmailAsync(
+                model.Email,
+                "Verify your email",
+                $@"
+        <h3>Email Verification</h3>
+        <p>Your verification code is:</p>
+        <h2>{code}</h2>
+        <p>This code expires in 10 minutes.</p>
+        "
+            );
+
+            return Ok("Verification code sent to your email.");
+        }
+
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto model)
+        {
+            var pendingUser = await context.PendingUsers
+                .FirstOrDefaultAsync(x => x.VerificationCode == model.Code);
+
+            if (pendingUser == null)
+                return BadRequest("Invalid verification code");
+
+            if (pendingUser.CodeExpiry < DateTime.UtcNow)
+                return BadRequest("Verification code expired");
+
+            var user = new AppUser
+            {
+                UserName = pendingUser.Email,
+                Email = pendingUser.Email,
+                FullName = pendingUser.FullName,
+                PhoneNumber = pendingUser.PhoneNumber,
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(user, pendingUser.Password);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
-            // 4. 🔥 ADD THE ROLE HERE
             await userManager.AddToRoleAsync(user, "Customer");
 
-            // 5. Response
-            return Ok(new { Message = "User registered successfully!" });
+            // Remove pending record
+            context.PendingUsers.Remove(pendingUser);
+            await context.SaveChangesAsync();
+
+            return Ok("Email verified and account created successfully.");
         }
+
+
+        [HttpPost("resend-verification-code")]
+        public async Task<IActionResult> ResendVerificationCode(
+            [FromBody] ResendVerificationCodeDto model,
+            [FromServices] IEmailService emailService)
+        {
+            var pendingUser = await context.PendingUsers
+                .FirstOrDefaultAsync(x => x.Email == model.Email);
+
+            if (pendingUser == null)
+                return BadRequest("No pending registration found for this email.");
+
+            // ⏱ Cooldown check (60 seconds)
+            if (pendingUser.LastVerificationCodeSentAt.HasValue &&
+                DateTime.UtcNow < pendingUser.LastVerificationCodeSentAt.Value.AddSeconds(60))
+            {
+                var waitTime = (int)(
+                    pendingUser.LastVerificationCodeSentAt.Value
+                    .AddSeconds(60) - DateTime.UtcNow
+                ).TotalSeconds;
+
+                return BadRequest(new
+                {
+                    Message = $"Please wait {waitTime} seconds before requesting another code."
+                });
+            }
+
+            // 🔐 Generate new secure code
+            var code = RandomNumberGenerator
+                .GetInt32(100000, 999999)
+                .ToString();
+
+            pendingUser.VerificationCode = code;
+            pendingUser.CodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            pendingUser.LastVerificationCodeSentAt = DateTime.UtcNow;
+
+            await context.SaveChangesAsync();
+
+            // 📧 Send email
+            await emailService.SendEmailAsync(
+                pendingUser.Email,
+                "Resend Email Verification Code",
+                $@"
+        <h3>Email Verification</h3>
+        <p>Your new verification code is:</p>
+        <h2>{code}</h2>
+        <p>This code expires in 10 minutes.</p>
+        "
+            );
+
+            return Ok(new
+            {
+                Message = "Verification code resent successfully"
+            });
+        }
+
 
 
         [HttpPost("login")]
@@ -58,12 +171,15 @@ namespace E_commarce_Backend.Controllers
             var user = await userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
-                return Unauthorized(new { Message = "Invalid login credentials" });
+                return Unauthorized(new { Message = "Invalid login credentials 1" });
 
             var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             if (!result.Succeeded)
-                return Unauthorized(new { Message = "Invalid login credentials" });
+                return Unauthorized(new { Message = "Invalid login credentials 2" });
+
+            if (!user.EmailConfirmed)
+                return Unauthorized("Please verify your email first");
 
             var roles = await userManager.GetRolesAsync(user);
 
@@ -95,6 +211,8 @@ namespace E_commarce_Backend.Controllers
 
             user.PasswordResetCode = code;
             user.PasswordResetCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.LastResetCodeSentAt = DateTime.UtcNow;
+
             await userManager.UpdateAsync(user);
 
             var htmlContent = $@"
@@ -141,35 +259,60 @@ namespace E_commarce_Backend.Controllers
             return Ok(new { Message = "Password reset successfully." });
         }
 
-
-        private async Task<string> GenerateJwtToken(AppUser user)
+        [HttpPost("resend-Reset-code")]
+        public async Task<IActionResult> ResendResetCode(
+        [FromBody] ResendResetCodeDto model,
+        [FromServices] IEmailService emailService)
         {
-            var roles = await userManager.GetRolesAsync(user);
+            var user = await userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return BadRequest("User not found");
 
-            var authClaims = new List<Claim>
+            // ⏱ Cooldown check (60 seconds)
+            if (user.LastResetCodeSentAt.HasValue &&
+                DateTime.UtcNow < user.LastResetCodeSentAt.Value.AddSeconds(60))
+            {
+                var waitTime =
+                    (int)(user.LastResetCodeSentAt.Value
+                    .AddSeconds(60) - DateTime.UtcNow).TotalSeconds;
+
+                return BadRequest(new
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
+                    Message = $"Please wait {waitTime} seconds before requesting another code."
+                });
+            }
 
-            // 🔥 Add roles to token
-            authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            // 🔐 Generate new secure code
+            var code = RandomNumberGenerator
+                .GetInt32(100000, 999999)
+                .ToString();
 
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
+            user.PasswordResetCode = code;
+            user.PasswordResetCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.LastResetCodeSentAt = DateTime.UtcNow;
 
-            var token = new JwtSecurityToken(
-                issuer: configuration["Jwt:Issuer"],
-                audience: configuration["Jwt:Audience"],
-                expires: DateTime.UtcNow.AddHours(3),
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            await userManager.UpdateAsync(user);
+
+            // 📧 Send email
+            await emailService.SendEmailAsync(
+                user.Email,
+                "Resend Email Reset Code",
+                $@"
+        <h3>Reset Password</h3>
+        <p>Your new Reset code is:</p>
+        <h2>{code}</h2>
+        <p>This code expires in 10 minutes.</p>
+        "
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return Ok(new
+            {
+                Message = "Reset Password code resent successfully"
+            });
         }
 
-
     }
+
 
 
 }
