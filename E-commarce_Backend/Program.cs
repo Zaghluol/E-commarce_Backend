@@ -1,5 +1,6 @@
 
 using E_commarce_Backend.Data;
+using E_commarce_Backend.Data.DataSeed;
 using E_commarce_Backend.Extentions;
 using E_commarce_Backend.Profiles;
 using E_commarce_Backend.Services;
@@ -30,8 +31,12 @@ namespace E_commarce_Backend
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddScoped<ECommerceDbContext>();
+            builder.Services.AddScoped<SeedInitialData>();
 
             var app = builder.Build();
+            await app.MigrateDataBase();
+            await app.SeedingData();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

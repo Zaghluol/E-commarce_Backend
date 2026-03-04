@@ -21,21 +21,21 @@ namespace E_commarce_Backend.Data.DataSeed
                 return;
             if (!hasCategory)
             {
-                await SeedDataFromJsonAsync<Category>("brands.json", _dbContext.Categories);
+                await SeedDataFromJsonAsync<Category>("categories.json", _dbContext.Categories);
             }
            
             await _dbContext.SaveChangesAsync();
             if (!await _dbContext.Products.AnyAsync())
             {
-                await SeedDataFromJsonAsync<Product>("products.json", _dbContext.Products);
+                await SeedDataFromJsonAsync<Product>("Products.json", _dbContext.Products);
                 await _dbContext.SaveChangesAsync();
             }
         }
         public async Task SeedDataFromJsonAsync<T>(string FileName, DbSet<T> dbset) where T : class
         {
             var basePath = Environment.CurrentDirectory;
-            var solutionPath = Path.Combine(basePath, "..");
-            var FilePath = Path.GetFullPath(Path.Combine(solutionPath,  "Data", "DataSeed", "jsonfiles", FileName));
+            //var solutionPath = Path.Combine(basePath, "..");
+            var FilePath = Path.GetFullPath(Path.Combine(basePath,  "Data", "DataSeed", "jsonfiles", FileName));
             // var FilePath =Path.GetFullPath( @"..\Presistance\Data\Initialization\DataForSeeding\" + FileName);
 
             if (!File.Exists(FilePath))

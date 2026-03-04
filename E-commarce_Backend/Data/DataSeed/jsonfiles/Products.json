@@ -1,6 +1,6 @@
 [
   {
-    "Id": 1,
+    
     "Name": "Smartphone X",
     "Price": 699.99,
     "Description": "Latest smartphone with 6.7-inch display, 128GB storage, and triple camera system",
@@ -9,7 +9,7 @@
     "Stock": 50
   },
   {
-    "Id": 2,
+    
     "Name": "Laptop Pro",
     "Price": 1299.99,
     "Description": "Powerful laptop with 16GB RAM, 512GB SSD, and dedicated graphics",
@@ -18,7 +18,7 @@
     "Stock": 25
   },
   {
-    "Id": 3,
+    
     "Name": "Wireless Headphones",
     "Price": 89.99,
     "Description": "Noise-cancelling wireless headphones with 30-hour battery life",
@@ -27,7 +27,7 @@
     "Stock": 100
   },
   {
-    "Id": 4,
+   
     "Name": "Men's Casual T-Shirt",
     "Price": 24.99,
     "Description": "Comfortable cotton t-shirt, available in multiple colors",
@@ -36,7 +36,7 @@
     "Stock": 200
   },
   {
-    "Id": 5,
+   
     "Name": "Women's Jeans",
     "Price": 49.99,
     "Description": "Classic fit denim jeans with stretch comfort",
@@ -45,7 +45,7 @@
     "Stock": 150
   },
   {
-    "Id": 6,
+   
     "Name": "Running Shoes",
     "Price": 79.99,
     "Description": "Lightweight running shoes with cushioned sole",
@@ -54,7 +54,7 @@
     "Stock": 75
   },
   {
-    "Id": 7,
+    
     "Name": "Science Fiction Novel",
     "Price": 14.99,
     "Description": "Bestselling sci-fi novel set in a dystopian future",
@@ -63,7 +63,7 @@
     "Stock": 300
   },
   {
-    "Id": 8,
+   
     "Name": "Cookbook: Healthy Recipes",
     "Price": 29.99,
     "Description": "200+ healthy recipes for everyday cooking",
@@ -72,7 +72,7 @@
     "Stock": 120
   },
   {
-    "Id": 9,
+   
     "Name": "Self-Help Guide",
     "Price": 19.99,
     "Description": "Transform your life with practical advice",
@@ -81,7 +81,7 @@
     "Stock": 80
   },
   {
-    "Id": 10,
+    
     "Name": "Coffee Maker",
     "Price": 89.99,
     "Description": "Programmable coffee maker with thermal carafe",
@@ -90,7 +90,7 @@
     "Stock": 40
   },
   {
-    "Id": 11,
+    
     "Name": "Blender Set",
     "Price": 129.99,
     "Description": "High-speed blender for smoothies and food processing",
@@ -99,7 +99,7 @@
     "Stock": 35
   },
   {
-    "Id": 12,
+    
     "Name": "Bed Sheet Set",
     "Price": 59.99,
     "Description": "100% cotton bed sheets, 4-piece set",
@@ -108,7 +108,7 @@
     "Stock": 90
   },
   {
-    "Id": 13,
+    
     "Name": "Yoga Mat",
     "Price": 34.99,
     "Description": "Non-slip exercise mat with carrying strap",
@@ -117,7 +117,7 @@
     "Stock": 150
   },
   {
-    "Id": 14,
+    
     "Name": "Dumbbell Set",
     "Price": 149.99,
     "Description": "Adjustable dumbbell set with rack",
@@ -126,7 +126,7 @@
     "Stock": 20
   },
   {
-    "Id": 15,
+    
     "Name": "Camping Tent",
     "Price": 199.99,
     "Description": "4-person waterproof tent for camping",
@@ -135,7 +135,7 @@
     "Stock": 15
   },
   {
-    "Id": 16,
+    
     "Name": "LEGO Building Set",
     "Price": 49.99,
     "Description": "500+ piece building set for ages 6+",
@@ -144,7 +144,7 @@
     "Stock": 60
   },
   {
-    "Id": 17,
+    
     "Name": "Board Game",
     "Price": 34.99,
     "Description": "Family strategy board game, 2-4 players",
@@ -153,7 +153,7 @@
     "Stock": 45
   },
   {
-    "Id": 18,
+    
     "Name": "Remote Control Car",
     "Price": 59.99,
     "Description": "Off-road RC car with rechargeable battery",
@@ -162,7 +162,7 @@
     "Stock": 30
   },
   {
-    "Id": 19,
+    
     "Name": "Facial Cleanser",
     "Price": 19.99,
     "Description": "Gentle foaming cleanser for all skin types",
@@ -171,7 +171,7 @@
     "Stock": 200
   },
   {
-    "Id": 20,
+    
     "Name": "Moisturizer Cream",
     "Price": 24.99,
     "Description": "Hydrating day cream with SPF 30",
@@ -180,7 +180,7 @@
     "Stock": 180
   },
   {
-    "Id": 21,
+    
     "Name": "Car Vacuum Cleaner",
     "Price": 39.99,
     "Description": "Portable handheld vacuum for car detailing",
@@ -189,7 +189,7 @@
     "Stock": 55
   },
   {
-    "Id": 22,
+    
     "Name": "Car Wax Kit",
     "Price": 29.99,
     "Description": "Complete car waxing kit for professional shine",
@@ -198,7 +198,7 @@
     "Stock": 70
   },
   {
-    "Id": 23,
+    
     "Name": "Smartwatch Series 5",
     "Price": 299.99,
     "Description": "Fitness tracker with heart rate monitor and GPS",
@@ -207,7 +207,7 @@
     "Stock": 45
   },
   {
-    "Id": 24,
+    
     "Name": "Wireless Earbuds",
     "Price": 79.99,
     "Description": "True wireless earbuds with charging case",
