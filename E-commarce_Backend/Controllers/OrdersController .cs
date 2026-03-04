@@ -10,22 +10,19 @@ namespace E_commarce_Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OrdersController : ControllerBase
+    public class OrdersController(ECommerceDbContext context) : ControllerBase
     {
-        private readonly ECommerceDbContext _context;
-
-        public OrdersController(ECommerceDbContext context)
-        {
-            _context = context;
-        }
-
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
         {
-            var userId = int.Parse(User.FindFirst("id").Value);
+            var userIdClaim = User.FindFirst("id");
+            if (userIdClaim == null)
+                return Unauthorized("User ID claim is missing.");
+            var userId = int.Parse(userIdClaim.Value);
 
-            var cartItems = await _context.CartItems
+            //var userId = int.Parse(User.FindFirst("id").Value);
+
+            var cartItems = await context.CartItems
                 .Include(c => c.Product)
                 .Where(c => c.Id == userId)
                 .ToListAsync();
@@ -63,8 +60,8 @@ namespace E_commarce_Backend.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            context.Orders.Add(order);
+            await context.SaveChangesAsync();
 
             // Process each cart item
             foreach (var item in cartItems)
@@ -73,7 +70,7 @@ namespace E_commarce_Backend.Controllers
                 item.Product.Stock -= item.Quantity;
 
                 // Create order item
-                _context.OrderItems.Add(new OrderItem
+                context.OrderItems.Add(new OrderItem
                 {
                     OrderId = order.Id,
                     ProductId = item.ProductId,
@@ -83,8 +80,8 @@ namespace E_commarce_Backend.Controllers
             }
 
             // Clear cart
-            _context.CartItems.RemoveRange(cartItems);
-            await _context.SaveChangesAsync();
+            context.CartItems.RemoveRange(cartItems);
+            await context.SaveChangesAsync();
 
             return Ok(new
             {
@@ -94,12 +91,11 @@ namespace E_commarce_Backend.Controllers
         }
 
         [HttpGet("my")]
-        [Authorize]
         public async Task<IActionResult> MyOrders()
         {
             var userId = int.Parse(User.FindFirst("id").Value);
 
-            var orders = await _context.Orders
+            var orders = await context.Orders
                 .Where(o => o.UserId == userId)
                 .Select(o => new
                 {
@@ -109,7 +105,7 @@ namespace E_commarce_Backend.Controllers
                     o.CreatedAt,
                     o.ShippingAddress,
                     o.Phone,
-                    ItemCount = _context.OrderItems.Count(i => i.OrderId == o.Id)
+                    ItemCount = context.OrderItems.Count(i => i.OrderId == o.Id)
                 })
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
@@ -118,18 +114,17 @@ namespace E_commarce_Backend.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<IActionResult> OrderDetails(int id)
         {
             var userId = int.Parse(User.FindFirst("id").Value);
 
-            var order = await _context.Orders
+            var order = await context.Orders
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
 
             if (order == null)
                 return NotFound("Order not found");
 
-            var items = await _context.OrderItems
+            var items = await context.OrderItems
                 .Where(i => i.OrderId == id)
                 .Select(i => new
                 {
@@ -138,7 +133,7 @@ namespace E_commarce_Backend.Controllers
                     i.Quantity,
                     i.PriceAtPurchase,
                     Subtotal = i.Quantity * i.PriceAtPurchase,
-                    ProductName = _context.Products
+                    ProductName = context.Products
                         .Where(p => p.Id == i.ProductId)
                         .Select(p => p.Name)
                         .FirstOrDefault()
