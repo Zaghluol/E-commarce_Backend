@@ -45,14 +45,16 @@ namespace E_commarce_Backend.Controllers
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
                 query = query.Where(p =>
-                    p.Name.Contains(filter.Name));
+                 EF.Functions.Like(p.Name, $"%{filter.Name}%") ||
+                 EF.Functions.Like(p.NameAr, $"%{filter.Name}%"));
             }
 
             // 📂 Filter by category name
             if (!string.IsNullOrWhiteSpace(filter.Category))
             {
                 query = query.Where(p =>
-                    p.Category.Name.Contains(filter.Category));
+                    EF.Functions.Like(p.Category.Name, $"%{filter.Category}%") ||
+                    EF.Functions.Like(p.Category.NameAr, $"%{filter.Category}%"));
             }
 
             // 💰 Price filtering
