@@ -21,7 +21,8 @@ namespace E_commarce_Backend.Services
                     Price = p.Price,
                     Description = p.Description,
                     ImageUrl = p.ImageUrl,
-                    CategoryId = p.CategoryId
+                    CategoryId = p.CategoryId ,
+                    NameAr = p.NameAr
                 })
                 .ToListAsync();
         }
@@ -40,7 +41,9 @@ namespace E_commarce_Backend.Services
                 Price = product.Price,
                 Description = product.Description,
                 ImageUrl = product.ImageUrl,
-                CategoryId = product.CategoryId
+                CategoryId = product.CategoryId ,
+                NameAr = product.NameAr
+               
             };
         }
 
@@ -58,7 +61,8 @@ namespace E_commarce_Backend.Services
                 Price = dto.Price,
                 Description = dto.Description,
                 ImageUrl = dto.ImageUrl,
-                CategoryId = dto.CategoryId
+                CategoryId = dto.CategoryId ,
+                NameAr = dto.NameAr
             };
 
             context.Products.Add(product);
@@ -71,7 +75,9 @@ namespace E_commarce_Backend.Services
                 Price = product.Price,
                 Description = product.Description,
                 ImageUrl = product.ImageUrl,
-                CategoryId = product.CategoryId
+                CategoryId = product.CategoryId ,
+                NameAr = product.NameAr
+                
             };
         }
 
@@ -87,6 +93,7 @@ namespace E_commarce_Backend.Services
             product.Description = dto.Description;
             product.ImageUrl = dto.ImageUrl;
             product.CategoryId = dto.CategoryId;
+            product.NameAr = dto.NameAr;
 
             await context.SaveChangesAsync();
         }
