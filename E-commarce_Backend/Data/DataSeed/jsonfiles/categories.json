@@ -1,42 +1,34 @@
 [
-    {
-        "Name": "Smartphones",
-        "NameAr": "الهواتف الذكية"
-    },
-    {
-        "Name": "Laptops",
-        "NameAr": "أجهزة الكمبيوتر المحمولة"
-    },
-    {
-        "Name": "Audio",
-        "NameAr": "الصوتيات"
-    },
-    {
-        "Name": "Wearables",
-        "NameAr": "الأجهزة القابلة للارتداء"
-    },
-    {
-        "Name": "Tablets",
-        "NameAr": "الأجهزة اللوحية"
-    },
-    {
-        "Name": "Cameras",
-        "NameAr": "الكاميرات"
-    },
-    {
-        "Name": "Gaming",
-        "NameAr": "ألعاب الفيديو"
-    },
-    {
-        "Name": "Computer Accessories",
-        "NameAr": "اكسسوارات الكمبيوتر"
-    },
-    {
-        "Name": "Monitors",
-        "NameAr": "الشاشات"
-    },
-    {
-        "Name": "TVs",
-        "NameAr": "التلفزيونات"
-    }
+  {
+    
+    "Name": "Electronics"
+  },
+  {
+    
+    "Name": "Clothing"
+  },
+  {
+    
+    "Name": "Books"
+  },
+  {
+    
+    "Name": "Home & Kitchen"
+  },
+  {
+   
+    "Name": "Sports & Outdoors"
+  },
+  {
+    
+    "Name": "Toys & Games"
+  },
+  {
+    
+    "Name": "Beauty & Personal Care"
+  },
+  {
+   
+    "Name": "Automotive"
+  }
 ]

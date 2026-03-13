@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_commarce_Backend.Data.Migrations
 {
     [DbContext(typeof(ECommerceDbContext))]
-    [Migration("20260312001532_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260303004514_AddStockProp")]
+    partial class AddStockProp
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -154,10 +154,6 @@ namespace E_commarce_Backend.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
@@ -239,19 +235,11 @@ namespace E_commarce_Backend.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DescriptionAr")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NameAr")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

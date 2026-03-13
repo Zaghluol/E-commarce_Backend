@@ -13,6 +13,8 @@ namespace E_commarce_Backend.Extentions
             var hasPendingMigrations = await dbcontext.Database.GetPendingMigrationsAsync();
             if (hasPendingMigrations.Any())
             {
+                
+                
                 await dbcontext.Database.MigrateAsync();
             }
             return app;
