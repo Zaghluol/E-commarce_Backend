@@ -1,4 +1,4 @@
-﻿using E_commarce_Backend.Dtos;
+﻿using E_commarce_Backend.Dtos.Product;
 
 namespace E_commarce_Backend.Services.Abstractions
 {

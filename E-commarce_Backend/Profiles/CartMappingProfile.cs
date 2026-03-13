@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using E_commarce_Backend.Dtos;
+using E_commarce_Backend.Dtos.Cart;
 using E_commarce_Backend.Models;
 
 namespace E_commarce_Backend.Profiles

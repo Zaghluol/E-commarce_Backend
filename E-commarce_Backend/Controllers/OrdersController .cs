@@ -1,5 +1,5 @@
 ﻿using E_commarce_Backend.Data;
-using E_commarce_Backend.Dtos;
+using E_commarce_Backend.Dtos.Orders;
 using E_commarce_Backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

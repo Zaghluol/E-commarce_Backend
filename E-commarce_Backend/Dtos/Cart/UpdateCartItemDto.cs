@@ -1,4 +1,4 @@
-﻿namespace E_commarce_Backend.Dtos
+﻿namespace E_commarce_Backend.Dtos.Cart
 {
     public class UpdateCartItemDto
     {

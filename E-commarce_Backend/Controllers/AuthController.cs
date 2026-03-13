@@ -1,5 +1,4 @@
-﻿using E_commarce_Backend.Dtos;
-using E_commarce_Backend.Models;
+﻿using E_commarce_Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +13,7 @@ using E_commarce_Backend.Services.Abstractions;
 using System.Security.Cryptography;
 using E_commarce_Backend.Data;
 using Microsoft.AspNetCore.Authorization;
+using E_commarce_Backend.Dtos.Auth;
 
 namespace E_commarce_Backend.Controllers
 {

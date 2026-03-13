@@ -1,5 +1,5 @@
 ﻿using E_commarce_Backend.Data;
-using E_commarce_Backend.Dtos;
+using E_commarce_Backend.Dtos.Product;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,6 @@
-﻿using E_commarce_Backend.Dtos; 
-using E_commarce_Backend.Services.Abstractions; 
-using Microsoft.AspNetCore.Mvc; 
+﻿using E_commarce_Backend.Dtos.Category;
+using E_commarce_Backend.Services.Abstractions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace E_commarce_Backend.Controllers
 {

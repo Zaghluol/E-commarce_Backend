@@ -1,9 +1,9 @@
-﻿namespace E_commarce_Backend.Dtos
+﻿namespace E_commarce_Backend.Dtos.Product
 {
     public class ProductSearchDto
     {
-        public string? Name { get; set; }       
-        public string? Category { get; set; }      
+        public string? Name { get; set; }
+        public string? Category { get; set; }
 
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }

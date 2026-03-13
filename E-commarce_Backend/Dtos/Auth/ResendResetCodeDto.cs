@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace E_commarce_Backend.Dtos
+namespace E_commarce_Backend.Dtos.Auth
 {
     public class ResendResetCodeDto
     {
