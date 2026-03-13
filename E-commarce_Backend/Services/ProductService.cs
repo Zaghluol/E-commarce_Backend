@@ -18,10 +18,12 @@ namespace E_commarce_Backend.Services
                 {
                     Id = p.Id,
                     Name = p.Name,
+                    NameAr = p.NameAr,
                     Price = p.Price,
                     Description = p.Description,
+                    DescriptionAr = p.DescriptionAr,
                     ImageUrl = p.ImageUrl,
-                    CategoryId = p.CategoryId
+                    CategoryId = p.CategoryId ,
                 })
                 .ToListAsync();
         }
@@ -37,10 +39,13 @@ namespace E_commarce_Backend.Services
             {
                 Id = product.Id,
                 Name = product.Name,
+                NameAr = product.NameAr
                 Price = product.Price,
                 Description = product.Description,
+                DescriptionAr = product.DescriptionAr,
                 ImageUrl = product.ImageUrl,
-                CategoryId = product.CategoryId
+                CategoryId = product.CategoryId ,
+               
             };
         }
 
@@ -55,10 +60,12 @@ namespace E_commarce_Backend.Services
             var product = new Product
             {
                 Name = dto.Name,
+                NameAr = dto.NameAr,
                 Price = dto.Price,
                 Description = dto.Description,
+                DescriptionAr = dto.DescriptionAr,
                 ImageUrl = dto.ImageUrl,
-                CategoryId = dto.CategoryId
+                CategoryId = dto.CategoryId ,
             };
 
             context.Products.Add(product);
@@ -68,10 +75,13 @@ namespace E_commarce_Backend.Services
             {
                 Id = product.Id,
                 Name = product.Name,
+                NameAr = product.NameAr,
                 Price = product.Price,
                 Description = product.Description,
+                DescriptionAr = product.DescriptionAr,
                 ImageUrl = product.ImageUrl,
-                CategoryId = product.CategoryId
+                CategoryId = product.CategoryId ,
+                
             };
         }
 
@@ -83,8 +93,10 @@ namespace E_commarce_Backend.Services
                 throw new Exception("Product not found.");
 
             product.Name = dto.Name;
+            product.NameAr = dto.NameAr;
             product.Price = dto.Price;
             product.Description = dto.Description;
+            product.DescriptionAr = dto.DescriptionAr;
             product.ImageUrl = dto.ImageUrl;
             product.CategoryId = dto.CategoryId;
 
