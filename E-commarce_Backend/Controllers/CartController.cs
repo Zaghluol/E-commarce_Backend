@@ -9,7 +9,7 @@ namespace E_commarce_Backend.Controllers
 {
     [ApiController]
     [Route("api/cart")]
-    //[Authorize]
+    [Authorize]
     public class CartController(ICartService cartService, UserManager<AppUser> userManager) : ControllerBase
     {
 

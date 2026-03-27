@@ -37,7 +37,8 @@ namespace E_commarce_Backend.Services
         {
             var category = new Category
             {
-                Name = dto.Name
+                Name = dto.Name,
+                NameAr = dto.NameAr
             };
 
             context.Categories.Add(category);
@@ -46,7 +47,8 @@ namespace E_commarce_Backend.Services
             return new CategoryDto
             {
                 Id = category.Id,
-                Name = category.Name
+                Name = category.Name,
+                NameAr = category.NameAr
             };
         }
 

@@ -4,8 +4,8 @@
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }        // English
-        public string NameAr { get; set; }      // Arabic
+        public string? Name { get; set; }        // English
+        public string? NameAr { get; set; }      // Arabic
 
         public decimal Price { get; set; } = 0;
 

@@ -1,8 +1,11 @@
-﻿    using System.Security.Claims;
+﻿using System.Security.Claims;
+using E_commarce_Backend.Models;
 using E_commarce_Backend.Services;
 using E_commarce_Backend.Services.Abstractions;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 
 namespace E_commarce_Backend.Controllers
 {
@@ -10,7 +13,7 @@ namespace E_commarce_Backend.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class FavoritesController(IFavoriteService favoriteService) : ControllerBase
+    public class FavoritesController(IFavoriteService favoriteService,UserManager<AppUser> userManager) : ControllerBase
     {
 
         private string GetUserId()

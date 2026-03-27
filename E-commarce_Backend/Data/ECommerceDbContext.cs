@@ -8,7 +8,7 @@ namespace E_commarce_Backend.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Favorite>()
-               .HasIndex(f => new { f.UserId, f.ProductId })
+               .HasIndex(f => new { f.UserId, f.ProductId })  
                .IsUnique();
 
             base.OnModelCreating(modelBuilder);
@@ -20,7 +20,7 @@ namespace E_commarce_Backend.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
-
+        public DbSet<AppUser> Users { get; set; }
     }
 
 }

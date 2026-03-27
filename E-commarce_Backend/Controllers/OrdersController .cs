@@ -10,21 +10,39 @@ namespace E_commarce_Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OrdersController(ECommerceDbContext context) : ControllerBase
+    [Authorize]
+    public class OrdersController : ControllerBase
     {
+        private readonly ECommerceDbContext _context;
+
+        public OrdersController(ECommerceDbContext context)
+        {
+            _context = context;
+        }
+
+        // 🔑 Get UserId from JWT claim safely
+        private string GetUserId()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("User ID claim is missing");
+
+            return userId;
+        }
+
+        // 🛒 Create an order from cart
         [HttpPost]
         public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
         {
-            var userIdClaim = User.FindFirst("id");
-            if (userIdClaim == null)
-                return Unauthorized("User ID claim is missing.");
-            var userId = int.Parse(userIdClaim.Value);
+            var userId = GetUserId();
 
-            //var userId = int.Parse(User.FindFirst("id").Value);
-
-            var cartItems = await context.CartItems
+            // Get all cart items for the current user
+            var cartItems = await _context.CartItems
                 .Include(c => c.Product)
-                .Where(c => c.Id == userId)
+                .Include(c => c.Cart)
+                .Where(c => c.Cart.UserId == userId)
                 .ToListAsync();
 
             if (!cartItems.Any())
@@ -33,15 +51,12 @@ namespace E_commarce_Backend.Controllers
             decimal total = 0;
             var stockIssues = new List<string>();
 
-            // Check stock for all items first
+            // Check stock
             foreach (var item in cartItems)
             {
                 var product = item.Product;
-
                 if (product.Stock < item.Quantity)
-                {
                     stockIssues.Add($"Not enough stock for {product.Name}. Available: {product.Stock}");
-                }
 
                 total += product.Price * item.Quantity;
             }
@@ -52,7 +67,7 @@ namespace E_commarce_Backend.Controllers
             // Create order
             var order = new Order
             {
-                UserId = userId,
+                UserId = userId, // string
                 TotalPrice = total,
                 ShippingAddress = dto.ShippingAddress,
                 Phone = dto.Phone,
@@ -60,17 +75,15 @@ namespace E_commarce_Backend.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            context.Orders.Add(order);
-            await context.SaveChangesAsync();
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
 
-            // Process each cart item
+            // Create order items and update stock
             foreach (var item in cartItems)
             {
-                // Update stock
                 item.Product.Stock -= item.Quantity;
 
-                // Create order item
-                context.OrderItems.Add(new OrderItem
+                _context.OrderItems.Add(new OrderItem
                 {
                     OrderId = order.Id,
                     ProductId = item.ProductId,
@@ -80,23 +93,22 @@ namespace E_commarce_Backend.Controllers
             }
 
             // Clear cart
-            context.CartItems.RemoveRange(cartItems);
-            await context.SaveChangesAsync();
+            _context.CartItems.RemoveRange(cartItems);
+            await _context.SaveChangesAsync();
 
-            return Ok(new
-            {
-                orderId = order.Id,
-                message = "Order created successfully"
-            });
+            return Ok(new { orderId = order.Id, message = "Order created successfully" });
         }
 
+        // 🧾 Get orders of current user
         [HttpGet("my")]
         public async Task<IActionResult> MyOrders()
         {
-            var userId = int.Parse(User.FindFirst("id").Value);
+            var userId = GetUserId();
 
-            var orders = await context.Orders
+            var orders = await _context.Orders
                 .Where(o => o.UserId == userId)
+                .Include(o => o.Items)
+                .OrderByDescending(o => o.CreatedAt)
                 .Select(o => new
                 {
                     o.Id,
@@ -105,47 +117,39 @@ namespace E_commarce_Backend.Controllers
                     o.CreatedAt,
                     o.ShippingAddress,
                     o.Phone,
-                    ItemCount = context.OrderItems.Count(i => i.OrderId == o.Id)
+                    ItemCount = o.Items.Count
                 })
-                .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
             return Ok(orders);
         }
 
+        // 📦 Get details of a specific order
         [HttpGet("{id}")]
         public async Task<IActionResult> OrderDetails(int id)
         {
-            var userId = int.Parse(User.FindFirst("id").Value);
+            var userId = GetUserId();
 
-            var order = await context.Orders
-                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+            var order = await _context.Orders
+           .Include(o => o.Items)
+           .ThenInclude(i => i.Product) // Ensure Product is included
+           .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
 
             if (order == null)
                 return NotFound("Order not found");
 
-            var items = await context.OrderItems
-                .Where(i => i.OrderId == id)
-                .Select(i => new
-                {
-                    i.Id,
-                    i.ProductId,
-                    i.Quantity,
-                    i.PriceAtPurchase,
-                    Subtotal = i.Quantity * i.PriceAtPurchase,
-                    ProductName = context.Products
-                        .Where(p => p.Id == i.ProductId)
-                        .Select(p => p.Name)
-                        .FirstOrDefault()
-                })
-                .ToListAsync();
-
-            return Ok(new
+            var items = order.Items.Select(i => new
             {
-                Order = order,
-                Items = items,
-                Total = order.TotalPrice
-            });
+                i.Id,
+                i.ProductId,
+                i.Quantity,
+                i.PriceAtPurchase,
+                Subtotal = i.Quantity * i.PriceAtPurchase,
+                ProductName = i.Product?.Name // Safely access Product.Name
+            }).ToList();
+
+            return Ok(new { Order = order, Items = items, Total = order.TotalPrice });
+
         }
     }
 }

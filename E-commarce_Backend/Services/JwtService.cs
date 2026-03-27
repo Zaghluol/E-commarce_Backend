@@ -10,21 +10,24 @@ namespace E_commarce_Backend.Services
 {
     public class JwtService(UserManager<AppUser> userManager, IConfiguration config) : IJwtService
     {
-
         public async Task<string> GenerateToken(AppUser user)
         {
             var roles = await userManager.GetRolesAsync(user);
 
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),   // ⭐ IMPORTANT
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(config["Jwt:Key"]));
+
+            var creds = new SigningCredentials(
+                key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: config["Jwt:Issuer"],
@@ -35,7 +38,10 @@ namespace E_commarce_Backend.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        //var handler = new JwtSecurityTokenHandler();
+        //var jwtToken = handler.ReadJwtToken(tokenString);
+
+        //var audience = jwtToken.Audiences.FirstOrDefault();
+        //Console.WriteLine($"Audience: {audience}");
     }
-
-
 }

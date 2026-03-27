@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using E_commarce_Backend.Repository;
+using E_commarce_Backend.Data.DataSeed;
+using Microsoft.OpenApi.Models;
+using E_commarce_Backend.Profiles;
 
 namespace E_commarce_Backend.Extentions
 {
@@ -51,17 +54,16 @@ namespace E_commarce_Backend.Extentions
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = jwtIssuer,
-                    ValidAudience = jwtIssuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
-                };
-            });
+             .AddJwtBearer(options =>
+             {
+                 options.TokenValidationParameters = new TokenValidationParameters
+                 {
+                     ValidIssuer = configuration["Jwt:Issuer"],
+                     ValidAudience = configuration["Jwt:Audience"],
+                     IssuerSigningKey = new SymmetricSecurityKey(
+                         Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                 };
+             });
 
             return services;
         }
@@ -74,10 +76,47 @@ namespace E_commarce_Backend.Extentions
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IFavoriteService, FavoriteService>();
+            services.AddScoped<ECommerceDbContext>();
+            services.AddScoped<SeedInitialData>();
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<CartMappingProfile>();
+            });
             return services;
         }
 
+        public static IServiceCollection AddSwaggerGen(this IServiceCollection services)
+        {
 
+        services.AddSwaggerGen(options =>
+        {
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter JWT Token"
+            });
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] { }
+                }
+            });
+        });
+            return services;
+        } 
     }
 }
 

@@ -92,7 +92,7 @@ namespace E_commarce_Backend.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppUser");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("E_commarce_Backend.Models.Cart", b =>
@@ -104,11 +104,9 @@ namespace E_commarce_Backend.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Carts");
                 });
@@ -214,8 +212,9 @@ namespace E_commarce_Backend.Data.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -246,6 +245,8 @@ namespace E_commarce_Backend.Data.Migrations
 
                     b.HasIndex("OrderId");
 
+                    b.HasIndex("ProductId");
+
                     b.ToTable("OrderItems");
                 });
 
@@ -273,11 +274,9 @@ namespace E_commarce_Backend.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameAr")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
@@ -291,15 +290,6 @@ namespace E_commarce_Backend.Data.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("E_commarce_Backend.Models.Cart", b =>
-                {
-                    b.HasOne("E_commarce_Backend.Models.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("E_commarce_Backend.Models.CartItem", b =>
@@ -340,7 +330,15 @@ namespace E_commarce_Backend.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("E_commarce_Backend.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Order");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("E_commarce_Backend.Models.Product", b =>

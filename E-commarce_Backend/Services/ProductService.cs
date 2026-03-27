@@ -39,7 +39,7 @@ namespace E_commarce_Backend.Services
             {
                 Id = product.Id,
                 Name = product.Name,
-                NameAr = product.NameAr
+                NameAr = product.NameAr,
                 Price = product.Price,
                 Description = product.Description,
                 DescriptionAr = product.DescriptionAr,

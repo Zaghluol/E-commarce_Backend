@@ -20,19 +20,14 @@ namespace E_commarce_Backend
             builder.Services.AddEcommarceDbContexts(builder.Configuration);
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddApplicationServices();
+            builder.Services.AddControllers();
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddProfile<CartMappingProfile>();
-            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddScoped<ECommerceDbContext>();
-            builder.Services.AddScoped<SeedInitialData>();
 
             var app = builder.Build();
             await app.MigrateDataBase();
