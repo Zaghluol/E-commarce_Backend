@@ -10,7 +10,8 @@ namespace E_commarce_Backend.Data
             modelBuilder.Entity<Favorite>()
                .HasIndex(f => new { f.UserId, f.ProductId })  
                .IsUnique();
-
+            modelBuilder.Entity<Address>()
+            .HasIndex(a => a.UserId);
             base.OnModelCreating(modelBuilder);
         }
         public DbSet<Product> Products { get; set; }
@@ -21,6 +22,7 @@ namespace E_commarce_Backend.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
         public DbSet<AppUser> Users { get; set; }
+        public DbSet<Address> Addresses { get; set; }
     }
 
 }
