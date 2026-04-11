@@ -20,7 +20,6 @@ namespace E_commarce_Backend.Services
                     AddressLine1 = a.AddressLine1,
                     AddressLine2 = a.AddressLine2,
                     City = a.City,
-                    State = a.State,
                     PostalCode = a.PostalCode,
                     Country = a.Country,
                     IsDefault = a.IsDefault
@@ -44,7 +43,6 @@ namespace E_commarce_Backend.Services
                 AddressLine1 = dto.AddressLine1,
                 AddressLine2 = dto.AddressLine2,
                 City = dto.City,
-                State = dto.State,
                 PostalCode = dto.PostalCode,
                 Country = dto.Country,
                 IsDefault = dto.IsDefault
@@ -59,7 +57,6 @@ namespace E_commarce_Backend.Services
                 AddressLine1 = address.AddressLine1,
                 AddressLine2 = address.AddressLine2,
                 City = address.City,
-                State = address.State,
                 PostalCode = address.PostalCode,
                 Country = address.Country,
                 IsDefault = address.IsDefault
@@ -83,7 +80,6 @@ namespace E_commarce_Backend.Services
             address.AddressLine1 = dto.AddressLine1;
             address.AddressLine2 = dto.AddressLine2;
             address.City = dto.City;
-            address.State = dto.State;
             address.PostalCode = dto.PostalCode;
             address.Country = dto.Country;
             address.IsDefault = dto.IsDefault;

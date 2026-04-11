@@ -13,9 +13,6 @@ namespace E_commarce_Backend.Dtos.Address
         public string City { get; set; } = string.Empty;
 
         [Required]
-        public string State { get; set; } = string.Empty;
-
-        [Required]
         public string PostalCode { get; set; } = string.Empty;
 
         [Required]

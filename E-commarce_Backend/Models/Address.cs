@@ -22,10 +22,6 @@ namespace E_commarce_Backend.Models
         public string City { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
-        public string State { get; set; } = string.Empty;
-
-        [Required]
         [StringLength(20)]
         public string PostalCode { get; set; } = string.Empty;
 
