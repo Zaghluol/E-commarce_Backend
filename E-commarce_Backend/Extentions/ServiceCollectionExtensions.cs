@@ -79,6 +79,8 @@ namespace E_commarce_Backend.Extentions
             services.AddScoped<IAddressService, AddressService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddHttpClient<IPaymobService, PaymobService>();
+            services.AddScoped<ICouponService, CouponService>();
+            services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<ECommerceDbContext>();
             services.AddScoped<SeedInitialData>();
             services.AddAutoMapper(cfg =>

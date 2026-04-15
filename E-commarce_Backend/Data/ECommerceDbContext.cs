@@ -12,6 +12,11 @@ namespace E_commarce_Backend.Data
                .IsUnique();
             modelBuilder.Entity<Address>()
             .HasIndex(a => a.UserId);
+            modelBuilder.Entity<OrderStatusHistory>()
+            .HasOne(h => h.Order)
+            .WithMany(o => o.StatusHistory)
+            .HasForeignKey(h => h.OrderId);
+
             base.OnModelCreating(modelBuilder);
         }
         public DbSet<Product> Products { get; set; }
@@ -23,6 +28,9 @@ namespace E_commarce_Backend.Data
         public DbSet<Favorite> Favorites { get; set; }
         public DbSet<AppUser> Users { get; set; }
         public DbSet<Address> Addresses { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
     }
 
 }

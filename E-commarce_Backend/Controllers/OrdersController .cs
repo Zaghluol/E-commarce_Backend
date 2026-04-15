@@ -1,13 +1,15 @@
 ﻿using E_commarce_Backend.Dtos.Orders;
+using E_commarce_Backend.Models;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class OrdersControllerOrdersController(IOrderService orderService) : ControllerBase
+public class OrdersController(IOrderService orderService) : ControllerBase
 {
 
     private string GetUserId()

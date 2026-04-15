@@ -4,8 +4,8 @@
     {
         public string ShippingAddress { get; set; }
         public string Phone { get; set; }
+        public string PaymentMethod { get; set; }
 
-        // optional (for future payment)
-        public string PaymentMethod { get; set; } // "cash" / "card"
+        public string? CouponCode { get; set; } // 🔥 NEW
     }
 }

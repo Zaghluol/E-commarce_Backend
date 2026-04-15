@@ -27,5 +27,6 @@
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public List<OrderItem> Items { get; set; }
+        public List<OrderStatusHistory> StatusHistory { get; set; } = new();
     }
 }

@@ -6,11 +6,29 @@ using Microsoft.EntityFrameworkCore;
 
 namespace E_commarce_Backend.Services
 {
-    public class OrderService(ECommerceDbContext context, IPaymobService paymobService) : IOrderService
+    public class OrderService(ECommerceDbContext context,
+        IPaymobService paymobService
+        ,ICouponService couponService,
+        INotificationService notificationService) : IOrderService
     {
+        private async Task AddStatusAsync(int orderId, string status)
+        {
+            var history = new OrderStatusHistory
+            {
+                OrderId = orderId,
+                Status = status,
+                Date = DateTime.UtcNow
+            };
+
+            context.OrderStatusHistories.Add(history);
+            await context.SaveChangesAsync();
+        }
         // 🛒 Checkout
         public async Task<object> CheckoutAsync(string userId, CheckoutDto dto)
         {
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("User not authenticated");
+
             var cartItems = await context.CartItems
                 .Include(c => c.Product)
                 .Include(c => c.Cart)
@@ -23,16 +41,36 @@ namespace E_commarce_Backend.Services
             decimal total = 0;
             var stockIssues = new List<string>();
 
+            // 🧠 Validate stock + calculate total
             foreach (var item in cartItems)
             {
-                if (item.Product.Stock < item.Quantity)
-                    stockIssues.Add($"Not enough stock for {item.Product.Name}");
+                var product = item.Product;
 
-                total += item.Product.Price * item.Quantity;
+                if (product == null)
+                    throw new Exception("Product not found");
+
+                if (product.Stock < item.Quantity)
+                {
+                    stockIssues.Add($"Not enough stock for {product.Name}");
+                }
+
+                total += product.Price * item.Quantity;
             }
 
             if (stockIssues.Any())
                 throw new Exception(string.Join(", ", stockIssues));
+
+            decimal originalTotal = total;
+            decimal discount = 0;
+
+            // 🎟️ APPLY COUPON
+            if (!string.IsNullOrEmpty(dto.CouponCode))
+            {
+                var newTotal = await couponService.ApplyCouponAsync(dto.CouponCode, total);
+
+                discount = total - newTotal;
+                total = newTotal;
+            }
 
             // 🧾 Create Order
             var order = new Order
@@ -66,7 +104,7 @@ namespace E_commarce_Backend.Services
             context.CartItems.RemoveRange(cartItems);
             await context.SaveChangesAsync();
 
-            // 💳 Payment (Paymob)
+            // 💳 Paymob Payment
             if (dto.PaymentMethod == "card")
             {
                 var paymentUrl = await paymobService.CreatePaymentUrl(
@@ -79,16 +117,21 @@ namespace E_commarce_Backend.Services
                 {
                     message = "Redirect to payment",
                     orderId = order.Id,
+                    originalTotal,
+                    discount,
+                    finalTotal = total,
                     paymentUrl
                 };
             }
 
-            // 💵 Cash
+            // 💵 Cash Order
             return new
             {
                 message = "Order placed successfully",
                 orderId = order.Id,
-                total
+                originalTotal,
+                discount,
+                finalTotal = total
             };
         }
 
@@ -139,6 +182,26 @@ namespace E_commarce_Backend.Services
                 Items = items,
                 Total = order.TotalPrice
             };
+        }
+        public async Task UpdateOrderStatusAsync(int orderId, string status)
+        {
+            var order = await context.Orders.FindAsync(orderId);
+
+            if (order == null)
+                throw new Exception("Order not found");
+
+            order.Status = status;
+
+            await context.SaveChangesAsync();
+
+            await AddStatusAsync(orderId, status);
+
+            // 🔔 SEND NOTIFICATION
+            await notificationService.SendAsync(
+                order.UserId,
+                "Order Update",
+                $"Your order #{order.Id} is now {status}"
+            );
         }
     }
 }
