@@ -87,6 +87,7 @@ namespace E_commarce_Backend.Extentions
             {
                 cfg.AddProfile<CartMappingProfile>();
             });
+            services.AddScoped<INotificationSettingsService, NotificationSettingsService>();
             return services;
         }
 

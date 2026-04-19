@@ -16,6 +16,9 @@ namespace E_commarce_Backend.Data
             .HasOne(h => h.Order)
             .WithMany(o => o.StatusHistory)
             .HasForeignKey(h => h.OrderId);
+            modelBuilder.Entity<NotificationSettings>()
+            .HasIndex(ns => ns.UserId)
+            .IsUnique(); // each user has only one settings row
 
             base.OnModelCreating(modelBuilder);
         }
@@ -31,6 +34,7 @@ namespace E_commarce_Backend.Data
         public DbSet<Coupon> Coupons { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
+        public DbSet<NotificationSettings> NotificationSettings { get; set; }
     }
 
 }
