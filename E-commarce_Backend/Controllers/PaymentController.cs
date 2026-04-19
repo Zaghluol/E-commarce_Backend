@@ -1,28 +1,36 @@
 ﻿using E_commarce_Backend.Data;
+using E_commarce_Backend.Dtos.paymob;
+using E_commarce_Backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace E_commarce_Backend.Controllers
+[ApiController]
+[Route("api/payment")]
+public class PaymentController(ECommerceDbContext context, PaymobSecurityService security) : ControllerBase
 {
-    [ApiController]
-    [Route("api/payment")]
-    public class PaymentController(ECommerceDbContext context) : ControllerBase
+    [HttpPost("callback")]
+    public async Task<IActionResult> Callback([FromBody] PaymobWebhookDto dto)
     {
+        // 🔴 1. Validate HMAC
+        if (!security.ValidateHmac(dto))
+            return BadRequest("Invalid HMAC");
 
-        [HttpPost("callback")]
-        public async Task<IActionResult> Callback([FromBody] dynamic data)
-        {
-            bool success = data.obj.success;
-            int orderId = int.Parse((string)data.obj.order.merchant_order_id);
+        // 🔴 2. Check success AND not pending
+        if (!dto.obj.success || dto.obj.pending)
+            return Ok(); // ignore
 
-            var order = await context.Orders.FindAsync(orderId);
-            if (order == null)
-                return NotFound();
+        // 🔴 3. Find order using Paymob Order ID
+        var order = await context.Orders
+            .FirstOrDefaultAsync(x => x.PaymentRef == dto.obj.order.id.ToString());
 
-            order.Status = success ? "Paid" : "Failed";
+        if (order == null)
+            return NotFound();
 
-            await context.SaveChangesAsync();
+        // 🔴 4. Update order
+        order.Status = "Paid";
 
-            return Ok();
-        }
+        await context.SaveChangesAsync();
+
+        return Ok();
     }
 }

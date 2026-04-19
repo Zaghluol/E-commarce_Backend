@@ -14,7 +14,7 @@
 
         [Required]
         public decimal TotalPrice { get; set; }
-
+        public decimal TotalAmount { get; set; }
         [Required]
         public string Status { get; set; } = "pending";
 
@@ -28,5 +28,6 @@
 
         public List<OrderItem> Items { get; set; }
         public List<OrderStatusHistory> StatusHistory { get; set; } = new();
+        public string PaymentRef { get; set; } // Paymob Order ID
     }
 }
