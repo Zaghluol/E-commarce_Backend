@@ -14,7 +14,8 @@ namespace E_commarce_Backend.Services
                 .Select(c => new CategoryDto
                 {
                     Id = c.Id,
-                    Name = c.Name
+                    Name = c.Name,
+                    NameAr = c.NameAr
                 })
                 .ToListAsync();
         }
@@ -29,7 +30,8 @@ namespace E_commarce_Backend.Services
             return new CategoryDto
             {
                 Id = category.Id,
-                Name = category.Name
+                Name = category.Name,
+                NameAr = category.NameAr
             };
         }
 

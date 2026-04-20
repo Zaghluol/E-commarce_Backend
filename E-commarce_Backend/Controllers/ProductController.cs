@@ -1,5 +1,6 @@
 ﻿using E_commarce_Backend.Data;
 using E_commarce_Backend.Dtos.Product;
+using E_commarce_Backend.Services;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -34,70 +35,12 @@ namespace E_commarce_Backend.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> AdvancedSearch(
-      [FromQuery] ProductSearchDto filter)
+        public async Task<IActionResult> AdvancedSearch([FromQuery] ProductSearchDto filter)
         {
-            var query = context.Products
-                .Include(p => p.Category)
-                .AsQueryable();
-
-            // 🔎 Filter by product name
-            if (!string.IsNullOrWhiteSpace(filter.Name))
-            {
-                query = query.Where(p =>
-                 EF.Functions.Like(p.Name, $"%{filter.Name}%") ||
-                 EF.Functions.Like(p.NameAr, $"%{filter.Name}%"));
-            }
-
-            // 📂 Filter by category name
-            if (!string.IsNullOrWhiteSpace(filter.Category))
-            {
-                query = query.Where(p =>
-                    EF.Functions.Like(p.Category.Name, $"%{filter.Category}%") ||
-                    EF.Functions.Like(p.Category.NameAr, $"%{filter.Category}%"));
-            }
-
-            // 💰 Price filtering
-            if (filter.MinPrice.HasValue)
-                query = query.Where(p => p.Price >= filter.MinPrice.Value);
-
-            if (filter.MaxPrice.HasValue)
-                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
-
-            // 📊 Sorting
-            if (!string.IsNullOrEmpty(filter.SortBy))
-            {
-                switch (filter.SortBy.ToLower())
-                {
-                    case "price":
-                        query = filter.SortDirection == "desc"
-                            ? query.OrderByDescending(p => p.Price)
-                            : query.OrderBy(p => p.Price);
-                        break;
-
-                    case "name":
-                        query = filter.SortDirection == "desc"
-                            ? query.OrderByDescending(p => p.Name)
-                            : query.OrderBy(p => p.Name);
-                        break;
-                }
-            }
-
-            var totalCount = await query.CountAsync();
-
-            var products = await query
-                .Skip((filter.Page - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToListAsync();
-
-            return Ok(new
-            {
-                TotalCount = totalCount,
-                Page = filter.Page,
-                PageSize = filter.PageSize,
-                Data = products
-            });
+            var result = await service.AdvancedSearchAsync(filter);
+            return Ok(result);
         }
+
         // POST: api/product
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateProductDto dto)

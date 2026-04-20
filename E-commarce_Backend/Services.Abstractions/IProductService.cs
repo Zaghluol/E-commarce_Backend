@@ -9,6 +9,7 @@ namespace E_commarce_Backend.Services.Abstractions
         Task<ProductDto> CreateAsync(CreateProductDto dto);
         Task UpdateAsync(int id, CreateProductDto dto);
         Task DeleteAsync(int id);
+        Task<object> AdvancedSearchAsync(ProductSearchDto filter);
     }
 
 }

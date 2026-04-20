@@ -23,7 +23,7 @@ namespace E_commarce_Backend.Services
                     Description = p.Description,
                     DescriptionAr = p.DescriptionAr,
                     ImageUrl = p.ImageUrl,
-                    CategoryId = p.CategoryId ,
+                    CategoryId = p.CategoryId,
                 })
                 .ToListAsync();
         }
@@ -44,8 +44,8 @@ namespace E_commarce_Backend.Services
                 Description = product.Description,
                 DescriptionAr = product.DescriptionAr,
                 ImageUrl = product.ImageUrl,
-                CategoryId = product.CategoryId ,
-               
+                CategoryId = product.CategoryId,
+
             };
         }
 
@@ -65,7 +65,7 @@ namespace E_commarce_Backend.Services
                 Description = dto.Description,
                 DescriptionAr = dto.DescriptionAr,
                 ImageUrl = dto.ImageUrl,
-                CategoryId = dto.CategoryId ,
+                CategoryId = dto.CategoryId,
             };
 
             context.Products.Add(product);
@@ -80,8 +80,8 @@ namespace E_commarce_Backend.Services
                 Description = product.Description,
                 DescriptionAr = product.DescriptionAr,
                 ImageUrl = product.ImageUrl,
-                CategoryId = product.CategoryId ,
-                
+                CategoryId = product.CategoryId,
+
             };
         }
 
@@ -113,6 +113,75 @@ namespace E_commarce_Backend.Services
             context.Products.Remove(product);
             await context.SaveChangesAsync();
         }
-    }
+        public async Task<object> AdvancedSearchAsync(ProductSearchDto filter)
+        {
+            var query = context.Products
+                .Include(p => p.Category)
+                .AsQueryable();
 
+            // 🔎 Name filter
+            if (!string.IsNullOrWhiteSpace(filter.Name))
+            {
+                query = query.Where(p =>
+                    EF.Functions.Like(p.Name, $"%{filter.Name}%") ||
+                    EF.Functions.Like(p.NameAr, $"%{filter.Name}%"));
+            }
+
+            // 📂 Category filter
+            if (!string.IsNullOrWhiteSpace(filter.Category))
+            {
+                query = query.Where(p =>
+                    EF.Functions.Like(p.Category.Name, $"%{filter.Category}%") ||
+                    EF.Functions.Like(p.Category.NameAr, $"%{filter.Category}%"));
+            }
+
+            // 💰 Price
+            if (filter.MinPrice.HasValue)
+                query = query.Where(p => p.Price >= filter.MinPrice.Value);
+
+            if (filter.MaxPrice.HasValue)
+                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+
+            // 📊 Sorting
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                query = filter.SortBy.ToLower() switch
+                {
+                    "price" => filter.SortDirection == "desc"
+                        ? query.OrderByDescending(p => p.Price)
+                        : query.OrderBy(p => p.Price),
+
+                    "name" => filter.SortDirection == "desc"
+                        ? query.OrderByDescending(p => p.Name)
+                        : query.OrderBy(p => p.Name),
+
+                    _ => query
+                };
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var products = await query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(p => new ProductDto // 🔥 IMPORTANT (avoid cycle)
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    CategoryName = p.Category.Name,
+                    CategoryId = p.Category.Id
+                })
+                .ToListAsync();
+
+            return new
+            {
+                TotalCount = totalCount,
+                Page = filter.Page,
+                PageSize = filter.PageSize,
+                Data = products
+            };
+        }
+
+    }
 }
