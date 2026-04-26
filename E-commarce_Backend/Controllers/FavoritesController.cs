@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using E_commarce_Backend.Models;
+using E_commarce_Backend.Models.User;
 using E_commarce_Backend.Services;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;

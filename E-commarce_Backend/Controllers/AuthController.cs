@@ -14,6 +14,7 @@ using System.Security.Cryptography;
 using E_commarce_Backend.Data;
 using Microsoft.AspNetCore.Authorization;
 using E_commarce_Backend.Dtos.Auth;
+using E_commarce_Backend.Models.User;
 
 namespace E_commarce_Backend.Controllers
 {

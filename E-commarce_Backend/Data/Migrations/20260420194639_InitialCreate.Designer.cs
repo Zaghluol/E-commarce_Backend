@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_commarce_Backend.Data.Migrations
 {
     [DbContext(typeof(ECommerceDbContext))]
-    [Migration("20260415134732_InitialCreate")]
+    [Migration("20260420194639_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -302,6 +302,41 @@ namespace E_commarce_Backend.Data.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("E_commarce_Backend.Models.NotificationSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OrderStatusUpdatesEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ProductRestockAlertsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PromotionsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PushNotificationsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("NotificationSettings");
+                });
+
             modelBuilder.Entity("E_commarce_Backend.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -312,6 +347,10 @@ namespace E_commarce_Backend.Data.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentRef")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
                         .IsRequired()
@@ -324,6 +363,9 @@ namespace E_commarce_Backend.Data.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");

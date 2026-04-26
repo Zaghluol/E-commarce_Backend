@@ -1,9 +1,9 @@
-﻿using E_commarce_Backend.Models;
+﻿using E_commarce_Backend.Models.User;
 using Microsoft.AspNetCore.Identity;
 
 namespace E_commarce_Backend.Data
 {
-        public static class SeedData
+    public static class SeedData
         {
             public static async Task SeedRolesAndAdminAsync(IServiceProvider services)
             {

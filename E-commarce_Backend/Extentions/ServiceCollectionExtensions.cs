@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using E_commarce_Backend.Data;
-using E_commarce_Backend.Models;
 using E_commarce_Backend.Services.Abstractions;
 using E_commarce_Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +10,7 @@ using E_commarce_Backend.Repository;
 using E_commarce_Backend.Data.DataSeed;
 using Microsoft.OpenApi.Models;
 using E_commarce_Backend.Profiles;
+using E_commarce_Backend.Models.User;
 
 namespace E_commarce_Backend.Extentions
 {
@@ -81,6 +81,7 @@ namespace E_commarce_Backend.Extentions
             services.AddHttpClient<IPaymobService, PaymobService>();
             services.AddScoped<ICouponService, CouponService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<INotificationSettingsService, NotificationSettingsService>();
             services.AddScoped<ECommerceDbContext>();
             services.AddScoped<SeedInitialData>();
             services.AddAutoMapper(cfg =>

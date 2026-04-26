@@ -1,4 +1,4 @@
-﻿namespace E_commarce_Backend.Dtos.NotificationSettings
+﻿namespace E_commarce_Backend.Dtos.Notifications
 {
     public class NotificationSettingsDto
     {

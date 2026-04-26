@@ -1,4 +1,7 @@
 ﻿using E_commarce_Backend.Models;
+using E_commarce_Backend.Models.Nofications;
+using E_commarce_Backend.Models.order;
+using E_commarce_Backend.Models.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace E_commarce_Backend.Data

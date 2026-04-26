@@ -1,4 +1,4 @@
-﻿using E_commarce_Backend.Models;
+﻿using E_commarce_Backend.Models.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

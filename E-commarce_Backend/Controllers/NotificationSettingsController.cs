@@ -1,4 +1,4 @@
-﻿using E_commarce_Backend.Dtos.NotificationSettings;
+﻿using E_commarce_Backend.Dtos.Notifications;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

@@ -1,4 +1,4 @@
-﻿using E_commarce_Backend.Dtos.NotificationSettings;
+﻿using E_commarce_Backend.Dtos.Notifications;
 
 namespace E_commarce_Backend.Services.Abstractions
 {

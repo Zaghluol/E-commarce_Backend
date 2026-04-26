@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace E_commarce_Backend.Models
+namespace E_commarce_Backend.Models.Nofications
 {
     public class NotificationSettings
     {

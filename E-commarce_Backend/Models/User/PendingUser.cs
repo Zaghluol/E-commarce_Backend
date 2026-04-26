@@ -1,4 +1,4 @@
-﻿namespace E_commarce_Backend.Models
+﻿namespace E_commarce_Backend.Models.User
 {
     public class PendingUser
     {

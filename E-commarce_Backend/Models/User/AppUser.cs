@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace E_commarce_Backend.Models
+namespace E_commarce_Backend.Models.User
 {
-    public class AppUser :IdentityUser
+    public class AppUser : IdentityUser
     {
         public string? FullName { get; set; }
         public string? EmailVerificationCode { get; set; }

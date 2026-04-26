@@ -94,6 +94,24 @@ namespace E_commarce_Backend.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "NotificationSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EmailNotificationsEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    PushNotificationsEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    OrderStatusUpdatesEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    PromotionsEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    ProductRestockAlertsEnabled = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NotificationSettings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
                 {
@@ -101,10 +119,12 @@ namespace E_commarce_Backend.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PaymentRef = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -293,6 +313,12 @@ namespace E_commarce_Backend.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_NotificationSettings_UserId",
+                table: "NotificationSettings",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
                 table: "OrderItems",
                 column: "OrderId");
@@ -330,6 +356,9 @@ namespace E_commarce_Backend.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "NotificationSettings");
 
             migrationBuilder.DropTable(
                 name: "OrderItems");

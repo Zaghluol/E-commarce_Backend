@@ -1,6 +1,7 @@
 ﻿using E_commarce_Backend.Data;
 using E_commarce_Backend.Dtos.Orders;
 using E_commarce_Backend.Models;
+using E_commarce_Backend.Models.order;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.EntityFrameworkCore;
 

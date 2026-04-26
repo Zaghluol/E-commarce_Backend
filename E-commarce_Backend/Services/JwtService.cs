@@ -1,4 +1,4 @@
-﻿using E_commarce_Backend.Models;
+﻿using E_commarce_Backend.Models.User;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
