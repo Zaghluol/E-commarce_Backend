@@ -7,5 +7,6 @@
         public string PaymentMethod { get; set; }
 
         public string? CouponCode { get; set; } // 🔥 NEW
+        public string Email { get; set; } = null!;
     }
 }

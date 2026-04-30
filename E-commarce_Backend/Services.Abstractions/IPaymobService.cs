@@ -2,6 +2,10 @@
 {
     public interface IPaymobService
     {
-        Task<string> CreatePaymentUrl(decimal amount, string orderId, string userEmail);
+        Task<(string paymentUrl, string paymobOrderId)> CreatePaymentUrl(
+            decimal amount,
+            string orderId,
+            string email,
+            int integrationId);
     }
 }

@@ -6,28 +6,24 @@
 
     public class Order
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required]
         public string UserId { get; set; }
 
-        [Required]
-        public decimal TotalPrice { get; set; }
         public decimal TotalAmount { get; set; }
-        [Required]
-        public string Status { get; set; } = "pending";
 
-        [Required]
+        public string Status { get; set; } = "PendingPayment";
+
         public string ShippingAddress { get; set; }
 
-        [Required]
         public string Phone { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public List<OrderItem> Items { get; set; }
+        public List<OrderItem> OrderItems { get; set; } = new();
+
         public List<OrderStatusHistory> StatusHistory { get; set; } = new();
-        public string PaymentRef { get; set; } // Paymob Order ID
+
+        public string PaymentRef { get; set; }
     }
 }

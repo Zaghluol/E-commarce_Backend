@@ -38,6 +38,8 @@ namespace E_commarce_Backend.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
         public DbSet<NotificationSettings> NotificationSettings { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
     }
 
 }
