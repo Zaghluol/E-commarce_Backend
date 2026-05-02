@@ -58,6 +58,22 @@ namespace E_commarce_Backend.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Conversations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ChannelId = table.Column<int>(type: "int", nullable: false),
+                    IsClosed = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Conversations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Coupons",
                 columns: table => new
                 {
@@ -147,6 +163,20 @@ namespace E_commarce_Backend.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SupportChannels",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupportChannels", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -200,6 +230,29 @@ namespace E_commarce_Backend.Data.Migrations
                         name: "FK_Products_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Messages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ConversationId = table.Column<int>(type: "int", nullable: false),
+                    SenderId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsFromAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Messages_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -352,6 +405,11 @@ namespace E_commarce_Backend.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Messages_ConversationId",
+                table: "Messages",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_NotificationSettings_UserId",
                 table: "NotificationSettings",
                 column: "UserId",
@@ -399,6 +457,9 @@ namespace E_commarce_Backend.Data.Migrations
                 name: "Favorites");
 
             migrationBuilder.DropTable(
+                name: "Messages");
+
+            migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
@@ -417,10 +478,16 @@ namespace E_commarce_Backend.Data.Migrations
                 name: "Reviews");
 
             migrationBuilder.DropTable(
+                name: "SupportChannels");
+
+            migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Carts");
+
+            migrationBuilder.DropTable(
+                name: "Conversations");
 
             migrationBuilder.DropTable(
                 name: "Orders");

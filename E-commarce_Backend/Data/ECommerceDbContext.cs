@@ -1,6 +1,7 @@
 ﻿using E_commarce_Backend.Models;
 using E_commarce_Backend.Models.Nofications;
 using E_commarce_Backend.Models.order;
+using E_commarce_Backend.Models.Support;
 using E_commarce_Backend.Models.User;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +41,9 @@ namespace E_commarce_Backend.Data
         public DbSet<NotificationSettings> NotificationSettings { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
+        public DbSet<SupportChannel> SupportChannels { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 
 }

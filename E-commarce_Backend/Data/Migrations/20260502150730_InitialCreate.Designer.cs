@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_commarce_Backend.Data.Migrations
 {
     [DbContext(typeof(ECommerceDbContext))]
-    [Migration("20260429160630_InitialCreate")]
+    [Migration("20260502150730_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -368,6 +368,84 @@ namespace E_commarce_Backend.Data.Migrations
                     b.ToTable("Reviews");
                 });
 
+            modelBuilder.Entity("E_commarce_Backend.Models.Support.Conversation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChannelId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Conversations");
+                });
+
+            modelBuilder.Entity("E_commarce_Backend.Models.Support.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsFromAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("E_commarce_Backend.Models.Support.SupportChannel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SupportChannels");
+                });
+
             modelBuilder.Entity("E_commarce_Backend.Models.User.AppUser", b =>
                 {
                     b.Property<string>("Id")
@@ -586,6 +664,17 @@ namespace E_commarce_Backend.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("E_commarce_Backend.Models.Support.Message", b =>
+                {
+                    b.HasOne("E_commarce_Backend.Models.Support.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
             modelBuilder.Entity("E_commarce_Backend.Models.order.OrderItem", b =>
                 {
                     b.HasOne("E_commarce_Backend.Models.order.Order", "Order")
@@ -624,6 +713,11 @@ namespace E_commarce_Backend.Data.Migrations
             modelBuilder.Entity("E_commarce_Backend.Models.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("E_commarce_Backend.Models.Support.Conversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("E_commarce_Backend.Models.order.Order", b =>
