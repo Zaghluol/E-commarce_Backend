@@ -516,7 +516,36 @@ namespace E_commarce_Backend.Data.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("E_commarce_Backend.Models.order.Order", b =>
+            modelBuilder.Entity("E_commarce_Backend.Models.order.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -555,7 +584,7 @@ namespace E_commarce_Backend.Data.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("E_commarce_Backend.Models.order.OrderItem", b =>
+            modelBuilder.Entity("OrderStatusHistory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -563,36 +592,7 @@ namespace E_commarce_Backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("E_commarce_Backend.Models.order.OrderStatusHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("OrderId")
@@ -674,7 +674,7 @@ namespace E_commarce_Backend.Data.Migrations
 
             modelBuilder.Entity("E_commarce_Backend.Models.order.OrderItem", b =>
                 {
-                    b.HasOne("E_commarce_Backend.Models.order.Order", "Order")
+                    b.HasOne("Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -691,15 +691,13 @@ namespace E_commarce_Backend.Data.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("E_commarce_Backend.Models.order.OrderStatusHistory", b =>
+            modelBuilder.Entity("OrderStatusHistory", b =>
                 {
-                    b.HasOne("E_commarce_Backend.Models.order.Order", "Order")
+                    b.HasOne("Order", null)
                         .WithMany("StatusHistory")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("E_commarce_Backend.Models.Cart", b =>
@@ -717,7 +715,7 @@ namespace E_commarce_Backend.Data.Migrations
                     b.Navigation("Messages");
                 });
 
-            modelBuilder.Entity("E_commarce_Backend.Models.order.Order", b =>
+            modelBuilder.Entity("Order", b =>
                 {
                     b.Navigation("OrderItems");
 

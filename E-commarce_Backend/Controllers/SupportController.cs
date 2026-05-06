@@ -38,5 +38,13 @@ namespace E_commarce_Backend.Controllers
             await service.SendMessageAsync(GetUserId(), dto);
             return Ok();
         }
+
+        [HttpPost("admin/reply")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminReply(AdminReplyDto dto)
+        {
+            await service.AdminReplyAsync(dto);
+            return Ok();
+        }
     }
 }

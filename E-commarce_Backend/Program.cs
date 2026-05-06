@@ -1,6 +1,7 @@
 
 using E_commarce_Backend.Data;
 using E_commarce_Backend.Data.DataSeed;
+using E_commarce_Backend.Dtos.support;
 using E_commarce_Backend.Extentions;
 using E_commarce_Backend.Profiles;
 using E_commarce_Backend.Services;
@@ -21,6 +22,8 @@ namespace E_commarce_Backend
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddApplicationServices();
             builder.Services.AddControllers();
+            builder.Services.AddSignalR();
+
 
             // Add services to the container.
 
@@ -33,6 +36,7 @@ namespace E_commarce_Backend
             await app.MigrateDataBase();
             await app.SeedingData();
 
+            app.MapHub<SupportHub>("/supportHub");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -41,6 +45,12 @@ namespace E_commarce_Backend
                 app.UseSwaggerUI();
 
             await app.SeedDataAsync();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                await SeedData.SeedRolesAndAdminAsync(services);
+            }
 
             app.UseHttpsRedirection();
             app.UseAuthentication();

@@ -1,29 +1,25 @@
-﻿namespace E_commarce_Backend.Models.order
+﻿using E_commarce_Backend.Models.Enums;
+using E_commarce_Backend.Models.order;
+
+public class Order
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
+    public int Id { get; set; }
 
-    public class Order
-    {
-        public int Id { get; set; }
+    public string UserId { get; set; }
 
-        public string UserId { get; set; }
+    public decimal TotalAmount { get; set; }
 
-        public decimal TotalAmount { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
 
-        public string Status { get; set; } = "PendingPayment";
+    public string ShippingAddress { get; set; }
 
-        public string ShippingAddress { get; set; }
+    public string Phone { get; set; }
 
-        public string Phone { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public List<OrderItem> OrderItems { get; set; } = new();
 
-        public List<OrderItem> OrderItems { get; set; } = new();
+    public List<OrderStatusHistory> StatusHistory { get; set; } = new();
 
-        public List<OrderStatusHistory> StatusHistory { get; set; } = new();
-
-        public string PaymentRef { get; set; }
-    }
+    public string PaymentRef { get; set; }
 }

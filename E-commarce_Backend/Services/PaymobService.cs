@@ -1,26 +1,22 @@
-﻿using E_commarce_Backend.Dtos.paymob;
+﻿using E_commarce_Backend.Data;
+using E_commarce_Backend.Dtos.paymob;
 using E_commarce_Backend.Services.Abstractions;
 
 namespace E_commarce_Backend.Services
 {
-    public class PaymobService(HttpClient httpClient, IConfiguration config) : IPaymobService
+    public class PaymobService(HttpClient httpClient, IConfiguration config,ECommerceDbContext context) : IPaymobService
     {
-        public async Task<(string paymentUrl, string paymobOrderId)> CreatePaymentUrl(
-            decimal amount,
-            string orderId,
-            string email,
-            int integrationId)
+        public async Task<string> CreatePaymentUrl(decimal amount, string orderId, string email)
         {
             // 1️⃣ AUTH
-            var authResponse = await httpClient.PostAsJsonAsync(
+            var auth = await httpClient.PostAsJsonAsync(
                 "https://accept.paymob.com/api/auth/tokens",
                 new { api_key = config["Paymob:ApiKey"] });
 
-            var authResult = await authResponse.Content.ReadFromJsonAsync<AuthResponse>();
-            var token = authResult.token;
+            var token = (await auth.Content.ReadFromJsonAsync<AuthResponse>()).token;
 
             // 2️⃣ CREATE ORDER
-            var orderResponse = await httpClient.PostAsJsonAsync(
+            var orderRes = await httpClient.PostAsJsonAsync(
                 "https://accept.paymob.com/api/ecommerce/orders",
                 new
                 {
@@ -28,46 +24,45 @@ namespace E_commarce_Backend.Services
                     delivery_needed = false,
                     amount_cents = (int)(amount * 100),
                     currency = "EGP",
-                    merchant_order_id = orderId,
-                    items = new object[] { }
+                    merchant_order_id = orderId
                 });
 
-            var orderResult = await orderResponse.Content.ReadFromJsonAsync<OrderResponse>();
+            var paymobOrder = await orderRes.Content.ReadFromJsonAsync<OrderResponse>();
+
+            // 🔥 SAVE Paymob Order ID
+            var order = await context.Orders.FindAsync(int.Parse(orderId));
+            order.PaymentRef = paymobOrder.id.ToString();
+            await context.SaveChangesAsync();
 
             // 3️⃣ PAYMENT KEY
-            var paymentKeyResponse = await httpClient.PostAsJsonAsync(
+            var keyRes = await httpClient.PostAsJsonAsync(
                 "https://accept.paymob.com/api/acceptance/payment_keys",
                 new
                 {
                     auth_token = token,
                     amount_cents = (int)(amount * 100),
                     expiration = 3600,
-                    order_id = orderResult.id,
+                    order_id = paymobOrder.id,
+                    currency = "EGP",
+                    integration_id = int.Parse(config["Paymob:IntegrationId"]),
                     billing_data = new
                     {
-                        email = email,
-                        first_name = "Test",
-                        last_name = "User",
+                        email,
+                        first_name = "NA",
+                        last_name = "NA",
                         phone_number = "01000000000",
-                        apartment = "NA",
-                        floor = "NA",
+                        country = "EG",
+                        city = "Cairo",
                         street = "NA",
                         building = "NA",
-                        city = "Cairo",
-                        country = "EG",
-                        state = "NA"
-                    },
-                    currency = "EGP",
-                    integration_id = integrationId
+                        floor = "NA",
+                        apartment = "NA"
+                    }
                 });
 
-            var paymentKeyResult = await paymentKeyResponse.Content.ReadFromJsonAsync<PaymentKeyResponse>();
+            var paymentKey = (await keyRes.Content.ReadFromJsonAsync<PaymentKeyResponse>()).token;
 
-            // 4️⃣ URL
-            var url = $"https://accept.paymob.com/api/acceptance/iframes/{config["Paymob:IframeId"]}?payment_token={paymentKeyResult.token}";
-
-            // 🔴 RETURN BOTH
-            return (url, orderResult.id.ToString());
+            return $"https://accept.paymob.com/api/acceptance/iframes/{config["Paymob:IframeId"]}?payment_token={paymentKey}";
         }
     }
 }

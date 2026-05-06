@@ -1,14 +1,12 @@
-﻿namespace E_commarce_Backend.Models.order
+﻿using E_commarce_Backend.Models.Enums;
+
+public class OrderStatusHistory
 {
-    public class OrderStatusHistory
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public int OrderId { get; set; }
-        public Order Order { get; set; }
+    public int OrderId { get; set; }
 
-        public string Status { get; set; } = null!;
+    public OrderStatus Status { get; set; }
 
-        public DateTime Date { get; set; } = DateTime.UtcNow;
-    }
+    public DateTime CreatedAt { get; set; }
 }

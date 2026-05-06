@@ -11,20 +11,22 @@ namespace E_commarce_Backend.Data
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Favorite>()
                .HasIndex(f => new { f.UserId, f.ProductId })  
                .IsUnique();
             modelBuilder.Entity<Address>()
             .HasIndex(a => a.UserId);
-            modelBuilder.Entity<OrderStatusHistory>()
-            .HasOne(h => h.Order)
-            .WithMany(o => o.StatusHistory)
-            .HasForeignKey(h => h.OrderId);
             modelBuilder.Entity<NotificationSettings>()
             .HasIndex(ns => ns.UserId)
             .IsUnique(); // each user has only one settings row
-
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Status)
+                .HasConversion<string>();
+            modelBuilder.Entity<OrderStatusHistory>()
+                .Property(o => o.Status)
+                .HasConversion<string>();
         }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }

@@ -1,34 +1,48 @@
 ﻿using E_commarce_Backend.Data;
 using E_commarce_Backend.Dtos.Orders;
-using E_commarce_Backend.Models;
 using E_commarce_Backend.Models.order;
+using E_commarce_Backend.Models.Enums;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace E_commarce_Backend.Services
 {
-    public class OrderService(ECommerceDbContext context,
-        IPaymobService paymobService
-        ,ICouponService couponService,
-        INotificationService notificationService,
-        IConfiguration config) : IOrderService
+    public class OrderService : IOrderService
     {
-        private async Task AddStatusAsync(int orderId, string status)
+        private readonly ECommerceDbContext context;
+        private readonly IPaymobService paymobService;
+        private readonly INotificationService notificationService;
+
+        public OrderService(
+            ECommerceDbContext context,
+            IPaymobService paymobService,
+            INotificationService notificationService)
         {
-            var history = new OrderStatusHistory
+            this.context = context;
+            this.paymobService = paymobService;
+            this.notificationService = notificationService;
+        }
+
+        // =========================
+        // 📌 Add Status History
+        // =========================
+        private async Task AddStatusAsync(int orderId, OrderStatus status)
+        {
+            context.OrderStatusHistories.Add(new OrderStatusHistory
             {
                 OrderId = orderId,
                 Status = status,
-                Date = DateTime.UtcNow
-            };
+                CreatedAt = DateTime.UtcNow
+            });
 
-            context.OrderStatusHistories.Add(history);
             await context.SaveChangesAsync();
         }
+
+        // =========================
         // 🛒 Checkout
-        public async Task<string> CheckoutAsync(string userId, CheckoutDto dto)
+        // =========================
+        public async Task<object> CheckoutAsync(string userId, CheckoutDto dto)
         {
-            // 1️⃣ Get user cart
             var cartItems = await context.CartItems
                 .Include(c => c.Product)
                 .Where(c => c.UserId == userId)
@@ -37,16 +51,15 @@ namespace E_commarce_Backend.Services
             if (!cartItems.Any())
                 throw new Exception("Cart is empty");
 
-            // 2️⃣ Calculate total
-            var total = cartItems.Sum(c => c.Quantity * c.Product.Price);
+            var total = cartItems.Sum(x => x.Quantity * x.Product.Price);
 
-            // 3️⃣ Create Order
             var order = new Order
             {
                 UserId = userId,
                 TotalAmount = total,
-                Status = "PendingPayment",
-                CreatedAt = DateTime.UtcNow,
+                Status = OrderStatus.PendingPayment,
+                ShippingAddress = dto.ShippingAddress,
+                Phone = dto.Phone,
                 OrderItems = cartItems.Select(c => new OrderItem
                 {
                     ProductId = c.ProductId,
@@ -58,42 +71,25 @@ namespace E_commarce_Backend.Services
             context.Orders.Add(order);
             await context.SaveChangesAsync();
 
-            // 4️⃣ Determine Payment Method
-            var paymentMethod = await context.PaymentMethods
-                .FirstOrDefaultAsync(x => x.UserId == userId && x.IsDefault);
-
-            // fallback if none selected
-            var methodType = paymentMethod?.Type ?? "Card";
-
-            // 5️⃣ Choose Paymob Integration
-            int integrationId = methodType switch
-            {
-                "Wallet" => int.Parse(config["Paymob:WalletIntegrationId"]),
-                "Fawry" => int.Parse(config["Paymob:FawryIntegrationId"]),
-                _ => int.Parse(config["Paymob:CardIntegrationId"])
-            };
-
-            // 6️⃣ Call Paymob
-            (string paymentUrl, string paymobOrderId) =
-            await paymobService.CreatePaymentUrl(
-                total,
+            // 🔥 Paymob
+            var paymentUrl = await paymobService.CreatePaymentUrl(
+                order.TotalAmount,
                 order.Id.ToString(),
-                dto.Email,
-                integrationId);
+                dto.Email
+            );
 
-            // 🔴 IMPORTANT: store Paymob reference
-            order.PaymentRef = paymobOrderId;
+            await AddStatusAsync(order.Id, OrderStatus.PendingPayment);
 
-            await context.SaveChangesAsync();
-
-            // 7️⃣ Clear cart
-            context.CartItems.RemoveRange(cartItems);
-            await context.SaveChangesAsync();
-
-            return paymentUrl;
+            return new
+            {
+                OrderId = order.Id,
+                PaymentUrl = paymentUrl
+            };
         }
 
-        // 🧾 Get My Orders
+        // =========================
+        // 📦 Get My Orders
+        // =========================
         public async Task<object> GetMyOrdersAsync(string userId)
         {
             return await context.Orders
@@ -104,7 +100,7 @@ namespace E_commarce_Backend.Services
                 {
                     o.Id,
                     o.TotalAmount,
-                    o.Status,
+                    Status = o.Status.ToString(),
                     o.CreatedAt,
                     o.ShippingAddress,
                     o.Phone,
@@ -113,7 +109,9 @@ namespace E_commarce_Backend.Services
                 .ToListAsync();
         }
 
+        // =========================
         // 📦 Order Details
+        // =========================
         public async Task<object> GetOrderDetailsAsync(string userId, int orderId)
         {
             var order = await context.Orders
@@ -124,37 +122,44 @@ namespace E_commarce_Backend.Services
             if (order == null)
                 throw new Exception("Order not found");
 
-            var items = order.OrderItems.Select(i => new
-            {
-                i.Id,
-                i.ProductId,
-                i.Quantity,
-                i.Price,
-                Subtotal = i.Quantity * i.Price,
-                ProductName = i.Product.Name
-            });
-
             return new
             {
-                Order = order,
-                Items = items,
-                Total = order.TotalAmount
+                OrderId = order.Id,
+                Status = order.Status.ToString(),
+                order.TotalAmount,
+                order.CreatedAt,
+                order.ShippingAddress,
+                order.Phone,
+                Items = order.OrderItems.Select(i => new
+                {
+                    i.ProductId,
+                    i.Quantity,
+                    i.Price,
+                    ProductName = i.Product.Name,
+                    Subtotal = i.Quantity * i.Price
+                })
             };
         }
-        public async Task UpdateOrderStatusAsync(int orderId, string status)
+
+        // =========================
+        // 🔁 Update Status (Webhook / Internal)
+        // =========================
+        public async Task UpdateOrderStatusAsync(int orderId, OrderStatus status)
         {
             var order = await context.Orders.FindAsync(orderId);
 
             if (order == null)
                 throw new Exception("Order not found");
 
+            // 🔥 RULES
+            if (status == OrderStatus.Processing && order.Status != OrderStatus.Paid)
+                throw new Exception("Order must be Paid first");
+
             order.Status = status;
 
             await context.SaveChangesAsync();
-
             await AddStatusAsync(orderId, status);
 
-            // 🔔 SEND NOTIFICATION
             await notificationService.SendAsync(
                 order.UserId,
                 "Order Update",

@@ -1,6 +1,7 @@
 ﻿using E_commarce_Backend.Data;
 using E_commarce_Backend.Dtos.Reviews;
 using E_commarce_Backend.Models;
+using E_commarce_Backend.Models.Enums;
 using E_commarce_Backend.Services.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,7 +59,7 @@ namespace E_commarce_Backend.Services
             var hasPurchased = await context.Orders
                 .AnyAsync(o =>
                     o.UserId == userId &&
-                    o.Status == "Paid" &&
+                    o.Status == OrderStatus.Paid &&
                     o.OrderItems.Any(i => i.ProductId == productId));
 
             if (!hasPurchased)

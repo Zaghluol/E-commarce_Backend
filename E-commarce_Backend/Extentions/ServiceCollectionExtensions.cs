@@ -11,6 +11,7 @@ using E_commarce_Backend.Data.DataSeed;
 using Microsoft.OpenApi.Models;
 using E_commarce_Backend.Profiles;
 using E_commarce_Backend.Models.User;
+using System.Security.Claims;
 
 namespace E_commarce_Backend.Extentions
 {
@@ -39,36 +40,48 @@ namespace E_commarce_Backend.Extentions
                 return services;
             }
 
-        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services,IConfiguration configuration)
         {
-            var jwtKey = configuration["Jwt:Key"]; 
+            var jwtKey = configuration["Jwt:Key"];
             if (string.IsNullOrEmpty(jwtKey))
-            {
                 throw new Exception("JWT Key not found in configuration!");
-            }
 
-            var jwtIssuer = configuration["Jwt:Issuer"];
+            var key = Encoding.UTF8.GetBytes(jwtKey);
 
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-             .AddJwtBearer(options =>
-             {
-                 options.TokenValidationParameters = new TokenValidationParameters
-                 {
-                     ValidIssuer = configuration["Jwt:Issuer"],
-                     ValidAudience = configuration["Jwt:Audience"],
-                     IssuerSigningKey = new SymmetricSecurityKey(
-                         Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
-                 };
-             });
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    // 🔐 Validate everything
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                    // 🔥 IMPORTANT → this fixes role issues
+                    RoleClaimType = ClaimTypes.Role,
+                    NameClaimType = ClaimTypes.NameIdentifier,
+
+                    ClockSkew = TimeSpan.Zero // no delay in expiration
+                };
+            });
 
             return services;
         }
+        
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, SmtpEmailService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IProductService, ProductService>();
@@ -86,6 +99,7 @@ namespace E_commarce_Backend.Extentions
             services.AddScoped<IPaymentMethodService, PaymentMethodService>();
             services.AddScoped<ISupportService, SupportService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<ECommerceDbContext>();
             services.AddScoped<SeedInitialData>();
             services.AddAutoMapper(cfg =>

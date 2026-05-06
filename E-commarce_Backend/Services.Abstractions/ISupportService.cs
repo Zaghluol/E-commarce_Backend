@@ -10,5 +10,6 @@ namespace E_commarce_Backend.Services.Abstractions
         Task<List<ConversationDto>> GetUserConversationsAsync(string userId);
 
         Task SendMessageAsync(string userId, SendMessageDto dto);
+        Task AdminReplyAsync(AdminReplyDto dto);
     }
 }
